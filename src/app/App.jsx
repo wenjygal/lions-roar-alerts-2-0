@@ -24,7 +24,6 @@ const initialFilters = {
 const initialBuilderState = {
   cut1: 'אזור',
   cut2: 'מועצה',
-  cut3: '',
   metric: 'מספר אזעקות',
   topN: '10',
 };
@@ -37,8 +36,6 @@ export default function App() {
   const {
     isLoading,
     error,
-    source,
-    fallbackReason,
     filterOptions,
     availableMunicipalities,
     availableSettlements,
@@ -67,7 +64,7 @@ export default function App() {
     () =>
       aggregateByDimension(
         filteredAlerts,
-        [builderState.cut1, builderState.cut2, builderState.cut3],
+        [builderState.cut1, builderState.cut2],
         builderState.metric,
         builderState.topN,
       ),
@@ -89,7 +86,6 @@ export default function App() {
         }
         return next;
       }
-
       if (field === 'municipality') {
         const next = { ...current, municipality: value, settlement: '' };
         if (current.municipality && current.municipality !== value) {
@@ -97,7 +93,6 @@ export default function App() {
         }
         return next;
       }
-
       return { ...current, [field]: value };
     });
   }
@@ -115,103 +110,87 @@ export default function App() {
     showToast('הניתוח המותאם אופס לברירת המחדל');
   }
 
-  function handleBuilderAddLevel() {
-    setBuilderState((current) => {
-      if (!current.cut2) {
-        return { ...current, cut2: 'מועצה' };
-      }
-
-      if (!current.cut3) {
-        return { ...current, cut3: 'יישוב' };
-      }
-
-      showToast('כבר הוגדרו 3 רמות חיתוך');
-      return current;
-    });
-  }
-
   return (
-    <div className="shell">
-      <div className="shell__backdrop" />
-      <main className="dashboard">
-        <header className="hero">
-          <div>
-            <p className="eyebrow">Lions Roar Alerts 2.0</p>
-            <h1>דשבורד אזעקות חדש עם פילוחים דינמיים למשתמש</h1>
-            <p className="hero__copy">
-              מבוסס על לוגיקת אירועים אחידה, פילטרים היררכיים ויכולת להרכיב חיתוכים מורכבים בלי
-              להפוך את המסך לכלי BI כבד.
-            </p>
+    <div className="min-h-screen bg-bg px-3 py-4 sm:p-6 max-w-7xl mx-auto">
+
+      {/* Header */}
+      <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-6">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-white">שאגת האריה 2.0</h1>
+          <p className="text-muted text-sm mt-1">דשבורד אזעקות · פילוח דינמי · נתוני פיקוד העורף</p>
+        </div>
+        <div className="flex items-center gap-3 text-xs text-muted">
+          <span>
+            {filteredAlerts.length.toLocaleString('he-IL')} שורות
+            {activeFilters.length ? ` · ${activeFilters.join(' | ')}` : ''}
+          </span>
+        </div>
+      </header>
+
+      <main>
+        {error && (
+          <div className="bg-red-900/30 border border-red-700 rounded-xl p-4 mb-6 text-red-300 text-sm">
+            שגיאה בטעינת נתונים: {error}
           </div>
-          <div className="hero__badge">
-            <span>מקור אמת</span>
-            <strong>alerts_clean + dashboard_events</strong>
-          </div>
-        </header>
+        )}
 
-        <section className="panel panel--hint">
-          <p className="panel__hint">
-            הפילטרים תלויים זה בזה: אזור מצמצם את רשימת המועצות והיישובים, ומועצה מצמצמת את
-            רשימת היישובים.
-          </p>
-          {!isLoading && !error ? (
-            <p className="panel__hint panel__hint--status">
-              מקור דאטה: <strong>{source === 'published_csv' ? 'Google Sheets live CSV' : 'Local snapshot fallback'}</strong>
-              {fallbackReason ? ` | סיבת fallback: ${fallbackReason}` : ''}
-            </p>
-          ) : null}
-        </section>
-
-        <FilterBar
-          filters={filters}
-          onChange={handleFilterChange}
-          onReset={handleResetFilters}
-          options={filterOptions}
-          availableMunicipalities={availableMunicipalities}
-          availableSettlements={availableSettlements}
-        />
-
-        {isLoading ? <section className="panel">טוען snapshot חי...</section> : null}
-        {error ? <section className="panel">שגיאה בטעינת הנתונים: {error}</section> : null}
-
-        {!isLoading && !error ? (
-          <section className="summary-strip">
-            <article className="summary-pill">
-              <span>שורות פעילות</span>
-              <strong>{filteredAlerts.length.toLocaleString('he-IL')}</strong>
-            </article>
-            <article className="summary-pill">
-              <span>פילטרים פעילים</span>
-              <strong>{activeFilters.length || '0'}</strong>
-            </article>
-            <article className="summary-pill summary-pill--wide">
-              <span>מצב סינון</span>
-              <strong>{activeFilters.length ? activeFilters.join(' | ') : 'ללא פילטרים נוספים, כל טווח התאריכים מוצג'}</strong>
-            </article>
-          </section>
-        ) : null}
-
-        {!isLoading && !error ? <KpiGrid items={kpis} /> : null}
-
-        {!isLoading && !error ? <ChartGrid items={charts} /> : null}
-
-        {!isLoading && !error ? (
-          <CustomCutBuilder
-            dimensions={customCutDimensions}
-            metrics={customCutMetrics}
-            topNOptions={topNOptions}
-            builderState={builderState}
-            previewRows={customCutRows}
-            onChange={handleBuilderChange}
-            onReset={handleBuilderReset}
-            onAddLevel={handleBuilderAddLevel}
+        <div className="mb-6">
+          <FilterBar
+            filters={filters}
+            onChange={handleFilterChange}
+            onReset={handleResetFilters}
+            options={filterOptions}
+            availableMunicipalities={availableMunicipalities}
+            availableSettlements={availableSettlements}
           />
-        ) : null}
+        </div>
 
-        {!isLoading && !error ? <TopTenTable rows={topTenRows} /> : null}
+        {isLoading && (
+          <div className="text-center text-muted py-20 text-sm">טוען נתונים...</div>
+        )}
+
+        {!isLoading && !error && (
+          <>
+            <KpiGrid items={kpis} />
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+              <ChartGrid items={charts.slice(0, 2)} />
+            </div>
+
+            <div className="mb-4">
+              <ChartGrid items={charts.slice(2)} />
+            </div>
+
+            <CustomCutBuilder
+              dimensions={customCutDimensions}
+              metrics={customCutMetrics}
+              topNOptions={topNOptions}
+              builderState={builderState}
+              previewRows={customCutRows}
+              onChange={handleBuilderChange}
+              onReset={handleBuilderReset}
+            />
+
+            <TopTenTable rows={topTenRows} />
+          </>
+        )}
       </main>
 
-      {toast ? <div className="toast">{toast}</div> : null}
+      <footer className="mt-8 pt-6 border-t border-border text-center text-xs text-muted space-y-1">
+        <p>האתר מציג נתונים רשמיים של פיקוד העורף. הנתונים מוצגים כפי שהתקבלו — אין אחריות לנכונותם.</p>
+        <p>
+          ליצירת קשר:{' '}
+          <a href="mailto:meimagineai@gmail.com" className="hover:text-white underline transition-colors">
+            MEIMAGINEAI
+          </a>
+        </p>
+      </footer>
+
+      {toast && (
+        <div className="fixed left-4 bottom-4 z-20 bg-[#1a1010] border border-border text-sm text-white rounded-xl px-4 py-3 shadow-lg">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

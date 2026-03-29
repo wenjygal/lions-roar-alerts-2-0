@@ -1,3 +1,20 @@
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
+} from 'recharts';
+
+const COLORS = ['#e85d04', '#f48c06', '#dc2626', '#b45309', '#7c3aed', '#0891b2', '#059669'];
+
+const tooltipStyle = {
+  backgroundColor: '#1a1010',
+  border: '1px solid #3a2020',
+  borderRadius: 8,
+  color: '#e5e5e5',
+  fontSize: 13,
+};
+
+const SELECT_CLASS =
+  'bg-[#1e1e1e] border border-border text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent w-full';
+
 export default function CustomCutBuilder({
   dimensions,
   metrics,
@@ -6,119 +23,121 @@ export default function CustomCutBuilder({
   previewRows,
   onChange,
   onReset,
-  onAddLevel,
 }) {
-  const { cut1, cut2, cut3, metric, topN } = builderState;
+  const { cut1, cut2, metric, topN } = builderState;
+  const chartData = previewRows.map((row) => ({
+    name: row.label,
+    value: row.rawValue ?? row.rawValue,
+  }));
+
   return (
-    <section className="panel">
-      <div className="panel__head">
-        <div>
-          <p className="eyebrow">Custom Cut Builder</p>
-          <h2>ניתוח מותאם אישית</h2>
-          <p className="panel__subcopy">
-            בחרו איך לקבץ את הנתונים ולראות חתך מותאם אישית על בסיס הסינון הנוכחי.
-          </p>
-        </div>
-      </div>
-
-      <p className="builder-note">הניתוח המותאם פועל על הנתונים שכבר סוננו למעלה.</p>
-
-      <div className="builder-grid">
-        <BuilderSelect label="קבץ לפי רמה 1" value={cut1} options={dimensions} onChange={(value) => onChange('cut1', value)} />
-        <BuilderSelect label="קבץ לפי רמה 2" value={cut2} options={['', ...dimensions]} onChange={(value) => onChange('cut2', value)} />
-        <BuilderSelect label="קבץ לפי רמה 3" value={cut3} options={['', ...dimensions]} onChange={(value) => onChange('cut3', value)} />
-        <BuilderSelect label="מדד" value={metric} options={metrics} onChange={(value) => onChange('metric', value)} />
-        <BuilderSelect label="Top N" value={topN} options={topNOptions} onChange={(value) => onChange('topN', value)} />
-      </div>
-
-      <div className="builder-actions">
-        <button className="primary-button" type="button" onClick={onAddLevel}>
-          הוסף רמת חיתוך
-        </button>
-        <button className="ghost-button" type="button" onClick={onReset}>
-          נקה builder
+    <div className="bg-card border border-border rounded-xl p-4 sm:p-5 mb-4">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-sm font-medium text-gray-300">חיתוך מותאם אישית</h2>
+        <button
+          type="button"
+          onClick={onReset}
+          className="text-xs text-muted hover:text-white border border-border rounded-lg px-3 py-1.5 transition-colors"
+        >
+          איפוס
         </button>
       </div>
 
-      <div className="builder-preview">
-        <div className="builder-preview__chart">
-          <div className="panel__head">
-            <h3>תצוגת גרף</h3>
-            <span className="metric-tag">
-              {cut1}
-              {cut2 ? ` > ${cut2}` : ''}
-              {cut3 ? ` > ${cut3}` : ''}
-            </span>
-          </div>
-          {previewRows.length ? (
-            <div className="stacked-bars" aria-hidden="true">
-              {previewRows.slice(0, 6).map((row, index) => (
-                <div className="stacked-bars__row" key={row.label}>
-                  <span>{row.label}</span>
-                  <div className="stacked-bars__track">
-                    <div
-                      className={`stacked-bars__fill stacked-bars__fill--${(index % 4) + 1}`}
-                      style={{ width: `${row.value}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="empty-state">
-              <strong>אין תוצאות לחיתוך שבחרת</strong>
-              <span>נסו להסיר פילטר או לבחור רמות חיתוך אחרות.</span>
-            </div>
-          )}
-        </div>
+      {/* Controls */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+        <Field label="קבץ לפי">
+          <select value={cut1} onChange={(e) => onChange('cut1', e.target.value)} className={SELECT_CLASS}>
+            {dimensions.map((d) => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </Field>
 
-        <div className="builder-preview__table">
-          <div className="panel__head">
-            <h3>תצוגת טבלה</h3>
-            <span className="metric-tag">{metric}</span>
+        <Field label="ואז לפי">
+          <select value={cut2} onChange={(e) => onChange('cut2', e.target.value)} className={SELECT_CLASS}>
+            <option value="">ללא</option>
+            {dimensions.map((d) => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </Field>
+
+        <Field label="מדד">
+          <select value={metric} onChange={(e) => onChange('metric', e.target.value)} className={SELECT_CLASS}>
+            {metrics.map((m) => <option key={m} value={m}>{m}</option>)}
+          </select>
+        </Field>
+
+        <Field label="Top N">
+          <select value={topN} onChange={(e) => onChange('topN', e.target.value)} className={SELECT_CLASS}>
+            {topNOptions.map((n) => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </Field>
+      </div>
+
+      {/* Results */}
+      {previewRows.length ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Chart */}
+          <div className="h-56 sm:h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 36 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#2a2020" vertical={false} />
+                <XAxis
+                  dataKey="name"
+                  interval={0}
+                  tick={{ fill: '#888', fontSize: 10 }}
+                  axisLine={false}
+                  tickLine={false}
+                  height={48}
+                  tickMargin={8}
+                />
+                <YAxis tick={{ fill: '#888', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  contentStyle={tooltipStyle}
+                  itemStyle={{ color: '#e5e5e5' }}
+                  cursor={{ fill: 'rgba(232,93,4,0.1)' }}
+                  formatter={(v) => [v.toLocaleString('he-IL'), metric]}
+                />
+                <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                  {chartData.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
-          {previewRows.length ? (
-            <table>
+
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
               <thead>
-                <tr>
-                  <th>קבוצה</th>
-                  <th>ערך</th>
-                  <th>מגמה</th>
+                <tr className="border-b border-border">
+                  <th className="text-right pb-3 text-muted font-medium">קבוצה</th>
+                  <th className="text-right pb-3 text-muted font-medium">{metric}</th>
+                  <th className="text-right pb-3 text-muted font-medium hidden sm:table-cell">מגמה</th>
                 </tr>
               </thead>
               <tbody>
-                {previewRows.slice(0, 6).map((row) => (
-                  <tr key={row.label}>
-                    <td>{row.label}</td>
-                    <td>{row.displayValue}</td>
-                    <td>{row.trend}</td>
+                {previewRows.map((row) => (
+                  <tr key={row.label} className="border-b border-border/50">
+                    <td className="py-2.5 text-gray-200">{row.label}</td>
+                    <td className="py-2.5 text-accent font-semibold">{row.displayValue}</td>
+                    <td className="py-2.5 text-muted hidden sm:table-cell">{row.trend}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          ) : (
-            <div className="empty-state">
-              <strong>כרגע אין טבלה להצגה</strong>
-              <span>הנתונים יופיעו כאן ברגע שהחיתוך יחזיר תוצאות.</span>
-            </div>
-          )}
+          </div>
         </div>
-      </div>
-    </section>
+      ) : (
+        <p className="text-muted text-sm py-6 text-center">אין תוצאות לחיתוך הנוכחי</p>
+      )}
+    </div>
   );
 }
 
-function BuilderSelect({ label, value, options, onChange }) {
+function Field({ label, children }) {
   return (
-    <label className="field">
-      <span>{label}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)}>
-        {options.map((option) => (
-          <option key={option || 'empty'} value={option}>
-            {option || 'ללא'}
-          </option>
-        ))}
-      </select>
+    <label className="flex flex-col gap-1.5">
+      <span className="text-xs font-semibold text-muted">{label}</span>
+      {children}
     </label>
   );
 }

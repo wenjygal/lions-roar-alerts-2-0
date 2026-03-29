@@ -192,6 +192,7 @@ function toChartBar(row, _, list) {
   return {
     label: row.label,
     value: Math.max(12, Math.round((row.rawValue / max) * 100)),
+    rawValue: row.rawValue,
   };
 }
 
