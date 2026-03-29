@@ -21,6 +21,13 @@ npm install
 npm run dev
 ```
 
+פריסה:
+
+- הריפו מוכן ל־GitHub Pages דרך workflow ב־`.github/workflows/deploy.yml`
+- אחרי push ל־`main`, צריך לוודא שב־GitHub Pages מקור הפריסה מוגדר ל־`GitHub Actions`
+- ה־site אמור לעלות תחת:
+  `https://wenjygal.github.io/lions-roar-alerts-2-0/`
+
 קבצים מרכזיים:
 
 - `src/app/App.jsx`
