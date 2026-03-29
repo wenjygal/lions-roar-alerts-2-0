@@ -9,7 +9,10 @@ export const customCutMetrics = [
 export const topNOptions = ['5', '10', '20', 'הכל'];
 
 const dimensionAccessors = {
-  אזור: (row) => row.region || 'לא ממופה',
+  אזור: (row) => {
+    const r = row.region || '';
+    return r.includes('?') ? 'לא ממופה' : r || 'לא ממופה';
+  },
   מועצה: (row) => row.municipality || 'לא ממופה',
   יישוב: (row) => row.normalized_settlement || row.source_settlement_raw || 'לא ממופה',
   'סוג אירוע': (row) => row.threat_label || 'לא ידוע',
@@ -19,7 +22,9 @@ const dimensionAccessors = {
 
 export function createFilterOptions(alerts) {
   const validAlerts = alerts.filter((row) => row.is_ignored !== 'TRUE');
-  const regions = uniqueSorted(validAlerts.map((row) => row.region).filter(Boolean));
+  const regions = uniqueSorted(
+    validAlerts.map((row) => row.region).filter((r) => r && !r.includes('?'))
+  );
   const threats = uniqueSorted(validAlerts.map((row) => row.threat_label).filter(Boolean));
 
   return {
