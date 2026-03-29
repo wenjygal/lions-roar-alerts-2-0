@@ -1,18 +1,22 @@
 # Lions Roar 2.0
 
-בסיס חדש ונפרד לדשבורד `lions roar alerts 2.0`.
+דשבורד חדש לניתוח אזעקות והתראות, עם דגש על תצוגת מצב מהירה, פילטרים היררכיים ויכולת לבנות פילוחים מותאמים אישית על בסיס אותו מקור אמת.
 
-מה יש כרגע:
+מה כולל הדשבורד:
 
-- Vite + React
-- shell ראשי לדשבורד
-- Filter Bar היררכי
-- KPI cards
-- גרפים ראשיים במבנה MVP
-- סקשן `ניתוח מותאם אישית`
-- טבלת `Top 10`
-- טעינה חיה מ־Google Sheets published CSV
-- fallback ל־snapshot מקומי אם Google Sheets לא זמין
+- פילטרים גלובליים לפי טווח זמן, אזור, מועצה, יישוב וסוג איום
+- כרטיסי KPI שמציגים תמונת מצב מהירה של היקף האירועים, האזור המוביל וסוג האיום הנפוץ
+- גרפים ראשיים לפילוח לפי סוג איום, אזור ומגמה יומית
+- טבלת `Top 10` להשוואה בין קבוצות מרכזיות
+- אזור `ניתוח מותאם אישית` שבו המשתמש יכול להרכיב חיתוכים משלו לפי אזור, מועצה, יישוב, סוג אירוע, תאריך ושעה
+- מצבי ריק והודעות מערכת שמבהירים מה קורה כשהסינון מצמצם את התוצאות
+- טעינה חיה מ־Google Sheets published CSV, עם fallback מקומי לשעת חירום
+
+מקור הנתונים:
+
+- הדשבורד עובד מול שכבת נתונים נקייה של `alerts_clean` ו־`dashboard_events`
+- ברירת המחדל היא משיכה ישירה מה־Published CSV של Google Sheets
+- אם הטעינה החיה נכשלת, המערכת נופלת אוטומטית לעותק snapshot מקומי כדי לשמור על זמינות
 
 כדי להתחיל:
 
@@ -27,16 +31,3 @@ npm run dev
 - אחרי push ל־`main`, צריך לוודא שב־GitHub Pages מקור הפריסה מוגדר ל־`GitHub Actions`
 - ה־site אמור לעלות תחת:
   `https://wenjygal.github.io/lions-roar-alerts-2-0/`
-
-קבצים מרכזיים:
-
-- `src/app/App.jsx`
-- `src/components/FilterBar.jsx`
-- `src/components/CustomCutBuilder.jsx`
-- `src/services/dashboardApi.js`
-- `src/domain/dashboardSelectors.js`
-
-מקור הדאטה:
-
-- ברירת המחדל היא טעינה ישירה מ־`alerts_clean` ו־`dashboard_events` דרך Published CSV
-- אם הטעינה החיה נכשלת, האפליקציה נופלת אוטומטית ל־`public/data/*.json`
