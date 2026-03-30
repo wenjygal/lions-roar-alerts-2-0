@@ -136,13 +136,27 @@ export function buildMainCharts(alerts) {
   ];
 }
 
-export function aggregateByDimension(alerts, dimensions, metric, topN = '10') {
+export function getDimensionValues(alerts, dimension) {
+  if (!dimension || !dimensionAccessors[dimension]) return [];
+  const accessor = dimensionAccessors[dimension];
+  return uniqueSorted(
+    alerts.map(accessor).filter((v) => v && v !== 'לא ממופה' && v !== 'לא ידוע'),
+  );
+}
+
+export function aggregateByDimension(alerts, dimensions, metric, topN = '10', selectedValues = []) {
   const activeDimensions = dimensions.filter(Boolean);
   if (!activeDimensions.length) return [];
 
+  const primaryAccessor = dimensionAccessors[activeDimensions[0]];
+  const source =
+    selectedValues.length > 0
+      ? alerts.filter((row) => selectedValues.includes(primaryAccessor(row)))
+      : alerts;
+
   const buckets = new Map();
 
-  for (const row of alerts) {
+  for (const row of source) {
     const labels = activeDimensions.map((dimension) => dimensionAccessors[dimension](row));
     const key = labels.join(' > ');
 

@@ -20,11 +20,27 @@ export default function CustomCutBuilder({
   metrics,
   topNOptions,
   builderState,
+  cut1AvailableValues,
   previewRows,
   onChange,
   onReset,
 }) {
-  const { cut1, cut2, metric, topN } = builderState;
+  const { cut1, cut2, metric, topN, selectedValues } = builderState;
+
+  function handleValueToggle(v) {
+    if (selectedValues.length === 0) {
+      onChange('selectedValues', cut1AvailableValues.filter((x) => x !== v));
+    } else if (selectedValues.includes(v)) {
+      const next = selectedValues.filter((x) => x !== v);
+      onChange('selectedValues', next);
+    } else {
+      onChange('selectedValues', [...selectedValues, v]);
+    }
+  }
+
+  function isChecked(v) {
+    return selectedValues.length === 0 || selectedValues.includes(v);
+  }
   const chartData = previewRows.map((row) => ({
     name: row.label,
     value: row.rawValue ?? row.rawValue,
@@ -70,6 +86,42 @@ export default function CustomCutBuilder({
           </select>
         </Field>
       </div>
+
+      {/* Value filter */}
+      {cut1AvailableValues.length > 0 && (
+        <div className="border border-border rounded-lg p-3 mb-5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-muted">
+              סנן ערכי {cut1}
+              {selectedValues.length > 0 && (
+                <span className="text-accent mr-1">· {selectedValues.length} נבחרו</span>
+              )}
+            </span>
+            <button
+              type="button"
+              onClick={() => onChange('selectedValues', [])}
+              className="text-xs text-muted hover:text-white transition-colors"
+            >
+              בחר הכל
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-x-4 gap-y-2 max-h-36 overflow-y-auto pr-1">
+            {cut1AvailableValues.map((v) => (
+              <label key={v} className="flex items-center gap-1.5 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={isChecked(v)}
+                  onChange={() => handleValueToggle(v)}
+                  className="accent-[#e85d04] w-3.5 h-3.5 cursor-pointer"
+                />
+                <span className="text-xs text-gray-300 group-hover:text-white transition-colors whitespace-nowrap">
+                  {v}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Results */}
       {previewRows.length ? (

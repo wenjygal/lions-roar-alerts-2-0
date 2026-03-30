@@ -8,6 +8,7 @@ import {
   aggregateByDimension,
   customCutDimensions,
   customCutMetrics,
+  getDimensionValues,
   topNOptions,
 } from '../domain/dashboardSelectors.js';
 import { useDashboardData } from '../hooks/useDashboardData.js';
@@ -26,6 +27,7 @@ const initialBuilderState = {
   cut2: 'מועצה',
   metric: 'מספר אזעקות',
   topN: '10',
+  selectedValues: [],
 };
 
 export default function App() {
@@ -60,6 +62,11 @@ export default function App() {
     [filters],
   );
 
+  const cut1AvailableValues = useMemo(
+    () => getDimensionValues(filteredAlerts, builderState.cut1),
+    [filteredAlerts, builderState.cut1],
+  );
+
   const customCutRows = useMemo(
     () =>
       aggregateByDimension(
@@ -67,6 +74,7 @@ export default function App() {
         [builderState.cut1, builderState.cut2],
         builderState.metric,
         builderState.topN,
+        builderState.selectedValues,
       ),
     [builderState, filteredAlerts],
   );
@@ -102,7 +110,12 @@ export default function App() {
   }
 
   function handleBuilderChange(field, value) {
-    setBuilderState((current) => ({ ...current, [field]: value }));
+    setBuilderState((current) => {
+      if (field === 'cut1') {
+        return { ...current, cut1: value, selectedValues: [] };
+      }
+      return { ...current, [field]: value };
+    });
   }
 
   function handleBuilderReset() {
@@ -166,6 +179,7 @@ export default function App() {
               metrics={customCutMetrics}
               topNOptions={topNOptions}
               builderState={builderState}
+              cut1AvailableValues={cut1AvailableValues}
               previewRows={customCutRows}
               onChange={handleBuilderChange}
               onReset={handleBuilderReset}
