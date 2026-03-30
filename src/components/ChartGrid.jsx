@@ -1,6 +1,7 @@
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  ComposedChart, Line,
 } from 'recharts';
 
 const COLORS = ['#e85d04', '#f48c06', '#dc2626', '#b45309', '#7c3aed', '#0891b2', '#059669'];
@@ -14,6 +15,17 @@ const tooltipStyle = {
 };
 const tooltipItemStyle = { color: '#e5e5e5' };
 const tooltipLabelStyle = { color: '#aaa', marginBottom: 4 };
+
+function DateXTick({ x, y, payload }) {
+  const v = String(payload.value);
+  // YYYY-MM-DD → MM-DD
+  const label = v.length >= 7 ? v.slice(5) : v;
+  return (
+    <text x={x} y={y + 12} textAnchor="middle" fill="#888" fontSize={10}>
+      {label}
+    </text>
+  );
+}
 
 function XTick({ x, y, payload }) {
   const v = String(payload.value);
@@ -109,6 +121,54 @@ function BarChartCard({ title, bars, compact }) {
   );
 }
 
+function DailyTrendChart({ title, bars }) {
+  if (!bars.length) return null;
+  const data = bars.map((b) => ({ name: b.label, value: b.rawValue, trend: b.trend }));
+  const interval = Math.max(0, Math.floor(data.length / 12) - 1);
+
+  return (
+    <div className="bg-card border border-border rounded-xl p-3 sm:p-5">
+      <h2 className="text-sm font-medium text-gray-300 mb-4 text-right">{title}</h2>
+      <div className="h-52 sm:h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={data} margin={{ top: 5, right: 10, left: -10, bottom: 20 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#2a2020" vertical={false} />
+            <XAxis
+              dataKey="name"
+              interval={interval}
+              tick={<DateXTick />}
+              axisLine={false}
+              tickLine={false}
+              height={28}
+            />
+            <YAxis tick={{ fill: '#888', fontSize: 11 }} axisLine={false} tickLine={false} />
+            <Tooltip
+              contentStyle={tooltipStyle}
+              itemStyle={tooltipItemStyle}
+              labelStyle={tooltipLabelStyle}
+              cursor={{ fill: 'rgba(232,93,4,0.1)' }}
+              labelFormatter={(v) => String(v).length >= 7 ? String(v).slice(5) : v}
+              formatter={(v, name) => [
+                v.toLocaleString('he-IL'),
+                name === 'trend' ? 'ממוצע נע' : 'אזעקות',
+              ]}
+            />
+            <Bar dataKey="value" fill="#e85d04" radius={[3, 3, 0, 0]} />
+            <Line
+              type="monotone"
+              dataKey="trend"
+              stroke="#f48c06"
+              strokeWidth={2.5}
+              dot={false}
+              strokeLinejoin="round"
+            />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
 export default function ChartGrid({ items }) {
   if (!items || !items.length) return null;
 
@@ -116,9 +176,10 @@ export default function ChartGrid({ items }) {
   if (items.length === 1) {
     const item = items[0];
     if (!item.bars.length) return null;
-    return (
-      <BarChartCard title={item.title} bars={item.bars} compact />
-    );
+    if (item.type === 'Daily Trend') {
+      return <DailyTrendChart title={item.title} bars={item.bars} />;
+    }
+    return <BarChartCard title={item.title} bars={item.bars} compact />;
   }
 
   // Two items side by side
@@ -126,6 +187,9 @@ export default function ChartGrid({ items }) {
     <>
       {items.map((item) => {
         if (!item.bars.length) return null;
+        if (item.type === 'Daily Trend') {
+          return <DailyTrendChart key={item.title} title={item.title} bars={item.bars} />;
+        }
         if (item.type === 'Donut / Breakdown') {
           return <DonutChart key={item.title} title={item.title} bars={item.bars} />;
         }

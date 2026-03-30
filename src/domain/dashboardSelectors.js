@@ -129,11 +129,32 @@ export function buildMainCharts(alerts) {
     },
     {
       type: 'Daily Trend',
-      title: 'מגמה יומית',
+      title: 'אזעקות לפי תאריך',
       metric: 'מספר אזעקות',
-      bars: aggregateByDimension(alerts, ['תאריך'], 'מספר אזעקות').slice(-7).map(toChartBar),
+      bars: buildDateTrendData(alerts),
     },
   ];
+}
+
+export function buildDateTrendData(alerts) {
+  const counts = new Map();
+  for (const row of alerts) {
+    const date = row.event_date;
+    if (!date) continue;
+    if (!counts.has(date)) counts.set(date, new Set());
+    if (row.event_key) counts.get(date).add(row.event_key);
+  }
+  const items = [...counts.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, keys]) => ({ label: date, rawValue: keys.size, value: keys.size }));
+
+  // 3-period moving average trend line
+  return items.map((item, i) => {
+    const start = Math.max(0, i - 1);
+    const end = Math.min(items.length, i + 2);
+    const avg = items.slice(start, end).reduce((s, x) => s + x.rawValue, 0) / (end - start);
+    return { ...item, trend: Math.round(avg) };
+  });
 }
 
 export function getDimensionValues(alerts, dimension) {
