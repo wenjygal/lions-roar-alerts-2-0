@@ -15,18 +15,6 @@ const tooltipStyle = {
 const INPUT_CLASS =
   'w-full bg-[#1e1e1e] border border-border text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-40';
 
-function AngleTick({ x, y, payload }) {
-  const label = String(payload.value).length > 14
-    ? String(payload.value).slice(0, 13) + '…'
-    : payload.value;
-  return (
-    <g transform={`translate(${x},${y})`}>
-      <text x={0} y={0} dy={4} textAnchor="end" fill="#888" fontSize={10} transform="rotate(-35)">
-        {label}
-      </text>
-    </g>
-  );
-}
 
 export default function CustomCutBuilder({
   metrics,
@@ -177,11 +165,14 @@ function GeoChart({ title, rows, metric }) {
             <XAxis
               dataKey="name"
               interval={0}
-              tick={<AngleTick />}
+              angle={-35}
+              textAnchor="end"
+              tickFormatter={(v) => v.length > 14 ? v.slice(0, 13) + '…' : v}
+              tick={{ fill: '#888', fontSize: 10 }}
               axisLine={false}
               tickLine={false}
-              height={64}
-              tickMargin={6}
+              height={70}
+              tickMargin={4}
             />
             <YAxis tick={{ fill: '#888', fontSize: 10 }} axisLine={false} tickLine={false} />
             <Tooltip

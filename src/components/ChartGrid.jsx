@@ -15,25 +15,6 @@ const tooltipStyle = {
 const tooltipItemStyle = { color: '#e5e5e5' };
 const tooltipLabelStyle = { color: '#aaa', marginBottom: 4 };
 
-function AngleTick({ x, y, payload }) {
-  const label = String(payload.value).length > 12
-    ? String(payload.value).slice(0, 11) + '…'
-    : payload.value;
-  return (
-    <g transform={`translate(${x},${y})`}>
-      <text
-        x={0} y={0} dy={4}
-        textAnchor="end"
-        fill="#888"
-        fontSize={10}
-        transform="rotate(-35)"
-      >
-        {label}
-      </text>
-    </g>
-  );
-}
-
 function toRechartsData(bars) {
   return bars.map((bar) => ({ name: bar.label, value: bar.rawValue ?? bar.value }));
 }
@@ -85,11 +66,14 @@ function BarChartCard({ title, bars, compact }) {
             <XAxis
               dataKey="name"
               interval={0}
-              height={64}
-              tickMargin={6}
-              tick={<AngleTick />}
+              angle={-35}
+              textAnchor="end"
+              tickFormatter={(v) => v.length > 12 ? v.slice(0, 11) + '…' : v}
+              tick={{ fill: '#888', fontSize: 10 }}
               axisLine={false}
               tickLine={false}
+              height={70}
+              tickMargin={4}
               padding={{ left: 10, right: 10 }}
             />
             <YAxis tick={{ fill: '#888', fontSize: 11 }} axisLine={false} tickLine={false} />
