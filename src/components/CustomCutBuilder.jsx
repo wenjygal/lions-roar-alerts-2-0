@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts';
@@ -16,11 +17,91 @@ const SELECT_CLASS =
   'bg-[#1e1e1e] border border-border text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent';
 
 function formatDate(iso) {
-  // '2026-03-07' → '07.03'
-  const parts = iso.split('-');
-  return `${parts[2]}.${parts[1]}`;
+  const p = iso.split('-');
+  return `${p[2]}.${p[1]}`;
 }
 
+/* ---------- Multi-select dropdown ---------- */
+function MultiDropdown({ label, options, selected, onChange, formatLabel, placeholder }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    function onClickOutside(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, []);
+
+  const isAll = selected.length === 0;
+  const display = formatLabel || ((v) => v);
+
+  function toggle(v) {
+    if (isAll) {
+      onChange(options.filter((x) => x !== v));
+    } else if (selected.includes(v)) {
+      onChange(selected.filter((x) => x !== v));
+    } else {
+      onChange([...selected, v]);
+    }
+  }
+
+  const buttonLabel = isAll
+    ? (placeholder || `כל ה${label}`)
+    : `${label} · ${selected.length} נבחרו`;
+
+  return (
+    <div className="flex flex-col gap-1.5 relative" ref={ref}>
+      <span className="text-xs font-semibold text-muted">{label}</span>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center justify-between gap-2 bg-[#1e1e1e] border border-border text-gray-200 rounded-lg px-3 py-2 text-sm hover:border-muted transition-colors text-right w-full"
+      >
+        <span className={`truncate ${isAll ? 'text-muted' : 'text-accent'}`}>{buttonLabel}</span>
+        <span className="text-muted text-xs flex-shrink-0">{open ? '▲' : '▼'}</span>
+      </button>
+
+      {open && (
+        <div className="absolute top-full mt-1 right-0 z-30 bg-[#1e1e1e] border border-border rounded-lg shadow-xl min-w-full w-max max-w-xs">
+          {/* Select all / clear */}
+          <div className="flex items-center justify-between px-3 py-2 border-b border-border">
+            <button
+              type="button"
+              onClick={() => onChange([])}
+              className="text-xs text-muted hover:text-white transition-colors"
+            >
+              הכל
+            </button>
+            {!isAll && (
+              <span className="text-xs text-accent">{selected.length} נבחרו</span>
+            )}
+          </div>
+          {/* Options */}
+          <div className="max-h-52 overflow-y-auto py-1">
+            {options.map((v) => (
+              <label
+                key={v}
+                className="flex items-center gap-2 px-3 py-1.5 cursor-pointer hover:bg-white/[0.04] transition-colors"
+              >
+                <input
+                  type="checkbox"
+                  checked={isAll || selected.includes(v)}
+                  onChange={() => toggle(v)}
+                  className="accent-[#e85d04] w-3.5 h-3.5 flex-shrink-0 cursor-pointer"
+                />
+                <span className="text-sm text-gray-200 whitespace-nowrap">{display(v)}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------- Main component ---------- */
 export default function CustomCutBuilder({
   metrics,
   topNOptions,
@@ -40,10 +121,6 @@ export default function CustomCutBuilder({
 
   const { regions, municipalities, settlements, threats, dates } = cutFilterOptions;
 
-  const hasActiveFilter =
-    filterRegions.length || filterMunicipalities.length || filterSettlements.length ||
-    filterThreats.length || filterDates.length;
-
   return (
     <div className="bg-card border border-border rounded-xl p-4 sm:p-5 mb-4">
       {/* Header */}
@@ -58,15 +135,15 @@ export default function CustomCutBuilder({
         </button>
       </div>
 
-      {/* Metric + TopN */}
-      <div className="flex gap-3 mb-5">
-        <label className="flex flex-col gap-1.5 flex-1">
+      {/* Row 1: metric + topN */}
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <label className="flex flex-col gap-1.5">
           <span className="text-xs font-semibold text-muted">מדד</span>
           <select value={metric} onChange={(e) => onChange('metric', e.target.value)} className={SELECT_CLASS}>
             {metrics.map((m) => <option key={m} value={m}>{m}</option>)}
           </select>
         </label>
-        <label className="flex flex-col gap-1.5 w-28">
+        <label className="flex flex-col gap-1.5">
           <span className="text-xs font-semibold text-muted">Top N</span>
           <select value={topN} onChange={(e) => onChange('topN', e.target.value)} className={SELECT_CLASS}>
             {topNOptions.map((n) => <option key={n} value={n}>{n}</option>)}
@@ -74,67 +151,48 @@ export default function CustomCutBuilder({
         </label>
       </div>
 
-      {/* Filter panel */}
-      <div className="border border-border rounded-lg p-4 mb-5 space-y-4">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-muted">
-            סנן נתונים
-            {hasActiveFilter ? <span className="text-accent mr-1">· פעיל</span> : null}
-          </span>
-          {hasActiveFilter ? (
-            <button
-              type="button"
-              onClick={onReset}
-              className="text-xs text-muted hover:text-white transition-colors"
-            >
-              נקה הכל
-            </button>
-          ) : null}
-        </div>
-
-        <MultiCheckbox
-          label="אזורים"
+      {/* Row 2: location dropdowns */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+        <MultiDropdown
+          label="אזור"
           options={regions}
           selected={filterRegions}
           onChange={(v) => onChange('filterRegions', v)}
+          placeholder="כל האזורים"
         />
+        <MultiDropdown
+          label="מועצה"
+          options={municipalities}
+          selected={filterMunicipalities}
+          onChange={(v) => onChange('filterMunicipalities', v)}
+          placeholder={filterRegions.length ? 'כל המועצות' : 'בחרו אזור קודם'}
+        />
+        <MultiDropdown
+          label="יישוב"
+          options={settlements}
+          selected={filterSettlements}
+          onChange={(v) => onChange('filterSettlements', v)}
+          placeholder={filterRegions.length ? 'כל היישובים' : 'בחרו אזור קודם'}
+        />
+      </div>
 
-        {municipalities.length > 0 && (
-          <MultiCheckbox
-            label="מועצות"
-            options={municipalities}
-            selected={filterMunicipalities}
-            onChange={(v) => onChange('filterMunicipalities', v)}
-          />
-        )}
-
-        {settlements.length > 0 && (
-          <MultiCheckbox
-            label="יישובים"
-            options={settlements}
-            selected={filterSettlements}
-            onChange={(v) => onChange('filterSettlements', v)}
-          />
-        )}
-
-        {threats.length > 0 && (
-          <MultiCheckbox
-            label="סוגי אירוע"
-            options={threats}
-            selected={filterThreats}
-            onChange={(v) => onChange('filterThreats', v)}
-          />
-        )}
-
-        {dates.length > 0 && (
-          <MultiCheckbox
-            label="תאריכים"
-            options={dates}
-            selected={filterDates}
-            onChange={(v) => onChange('filterDates', v)}
-            formatLabel={formatDate}
-          />
-        )}
+      {/* Row 3: threat + dates */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+        <MultiDropdown
+          label="סוג אירוע"
+          options={threats}
+          selected={filterThreats}
+          onChange={(v) => onChange('filterThreats', v)}
+          placeholder="כל הסוגים"
+        />
+        <MultiDropdown
+          label="תאריכים"
+          options={dates}
+          selected={filterDates}
+          onChange={(v) => onChange('filterDates', v)}
+          formatLabel={formatDate}
+          placeholder="כל התאריכים"
+        />
       </div>
 
       {/* 3 geo charts */}
@@ -147,9 +205,9 @@ export default function CustomCutBuilder({
   );
 }
 
+/* ---------- Geo chart ---------- */
 function GeoChart({ title, rows, metric }) {
   if (!rows.length) return null;
-
   const data = rows.map((r) => ({ name: r.label, value: r.rawValue }));
 
   return (
@@ -185,59 +243,6 @@ function GeoChart({ title, rows, metric }) {
             </Bar>
           </BarChart>
         </ResponsiveContainer>
-      </div>
-    </div>
-  );
-}
-
-function MultiCheckbox({ label, options, selected, onChange, formatLabel }) {
-  const isAll = selected.length === 0;
-
-  function toggle(v) {
-    if (isAll) {
-      onChange(options.filter((x) => x !== v));
-    } else if (selected.includes(v)) {
-      const next = selected.filter((x) => x !== v);
-      onChange(next);
-    } else {
-      onChange([...selected, v]);
-    }
-  }
-
-  const displayLabel = formatLabel || ((v) => v);
-
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-semibold text-muted">
-          {label}
-          {!isAll && <span className="text-accent mr-1">· {selected.length} נבחרו</span>}
-        </span>
-        {!isAll && (
-          <button
-            type="button"
-            onClick={() => onChange([])}
-            className="text-xs text-muted hover:text-white transition-colors"
-          >
-            הכל
-          </button>
-        )}
-      </div>
-      <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
-        {options.map((v) => (
-          <button
-            key={v}
-            type="button"
-            onClick={() => toggle(v)}
-            className={`text-xs px-2 py-1 rounded-md border transition-colors whitespace-nowrap ${
-              isAll || selected.includes(v)
-                ? 'bg-accent/20 border-accent/60 text-orange-300'
-                : 'bg-transparent border-border text-muted hover:border-muted'
-            }`}
-          >
-            {displayLabel(v)}
-          </button>
-        ))}
       </div>
     </div>
   );
