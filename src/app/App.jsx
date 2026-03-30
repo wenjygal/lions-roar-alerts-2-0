@@ -323,7 +323,9 @@ export default function App() {
         )}
       </main>
 
-      <footer className="mt-8 pt-6 border-t border-border text-center text-xs text-muted space-y-1">
+      <footer className="mt-8 pt-6 border-t border-border text-center text-xs text-muted space-y-2">
+        <p>האתר מציג נתונים רשמיים של פיקוד העורף. הנתונים מוצגים כפי שהתקבלו — אין אחריות לנכונותם והשימוש באתר על אחריות המשתמש בלבד.</p>
+        <p>האתר נגיש לפי התקן הישראלי · פתוח לכולם · אינו שומר פרטים אישיים.</p>
         <p>
           ליצירת קשר:{' '}
           <a href="mailto:meimagineai@gmail.com" className="hover:text-white underline transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded">
