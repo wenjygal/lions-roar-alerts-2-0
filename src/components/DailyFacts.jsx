@@ -5,83 +5,85 @@ function buildFacts(alerts) {
 
   const facts = [];
 
-  // Total count
   const total = new Set(alerts.map((r) => r.event_key).filter(Boolean)).size;
-  facts.push(`אתמול נרשמו ${total.toLocaleString('he-IL')} אזעקות`);
 
-  // Busiest hour
+  // By hour
   const byHour = {};
   for (const r of alerts) {
     const h = String(r.event_time_local || '').slice(0, 2);
     if (h) byHour[h] = (byHour[h] || 0) + 1;
   }
-  const topHour = Object.entries(byHour).sort((a, b) => b[1] - a[1])[0];
-  if (topHour) {
-    facts.push(`שעת השיא אתמול: ${topHour[0]}:00–${topHour[0]}:59 עם ${topHour[1].toLocaleString('he-IL')} התראות`);
-  }
+  const hourEntries = Object.entries(byHour).sort((a, b) => b[1] - a[1]);
+  const topHour = hourEntries[0];
+  const quietHour = hourEntries[hourEntries.length - 1];
 
-  // Quietest hour (only hours that had at least 1 alert, find min)
-  const quietHour = Object.entries(byHour).sort((a, b) => a[1] - b[1])[0];
-  if (quietHour && quietHour[0] !== topHour?.[0]) {
-    facts.push(`השעה השקטה ביותר אתמול: ${quietHour[0]}:00 עם ${quietHour[1]} התראות בלבד`);
-  }
-
-  // Top settlement
+  // By settlement
   const bySettlement = {};
   for (const r of alerts) {
     const s = r.normalized_settlement || r.source_settlement_raw;
     if (s && s !== 'לא ממופה') bySettlement[s] = (bySettlement[s] || 0) + 1;
   }
   const topSettlement = Object.entries(bySettlement).sort((a, b) => b[1] - a[1])[0];
-  if (topSettlement) {
-    facts.push(`הישוב הכי מופגז אתמול: ${topSettlement[0]} עם ${topSettlement[1].toLocaleString('he-IL')} התראות`);
-  }
+  const uniqueSettlements = Object.keys(bySettlement).length;
 
-  // Top region
+  // By region
   const byRegion = {};
   for (const r of alerts) {
     const reg = r.region;
     if (reg && !reg.includes('?') && reg !== 'לא ממופה') byRegion[reg] = (byRegion[reg] || 0) + 1;
   }
   const topRegion = Object.entries(byRegion).sort((a, b) => b[1] - a[1])[0];
+
+  // First / last
+  const times = alerts.map((r) => r.event_time_local).filter(Boolean).sort();
+  const firstAlert = times[0]?.slice(0, 5);
+  const lastAlert = times[times.length - 1]?.slice(0, 5);
+
+  // --- Witty fact templates ---
+
+  if (total > 0) {
+    facts.push(`אתמול השמיעו ${total.toLocaleString('he-IL')} אזעקות. יותר מהממוצע של הודעות שיווק שמקבלים ביום.`);
+  }
+
+  if (topHour) {
+    facts.push(`${topHour[0]}:00–${topHour[0]}:59 הייתה שעת השיא אתמול — ${topHour[1].toLocaleString('he-IL')} התראות. ממליצים לתכנן את הקפה לשעה אחרת.`);
+  }
+
+  if (quietHour && quietHour[0] !== topHour?.[0]) {
+    facts.push(`${quietHour[0]}:00 הייתה השקטה ביותר אתמול עם ${quietHour[1]} התראות בלבד. חלון הזדמנויות מצוין למקלחת.`);
+  }
+
+  if (topSettlement) {
+    facts.push(`${topSettlement[0]} זכתה אתמול בתואר "היעד המועדף" — ${topSettlement[1].toLocaleString('he-IL')} ביקורים לא מוזמנים.`);
+  }
+
   if (topRegion) {
     const pct = Math.round((topRegion[1] / alerts.length) * 100);
-    facts.push(`${pct}% מהאזעקות אתמול היו באזור ${topRegion[0]}`);
+    facts.push(`${pct}% מהאזעקות אתמול היו ב${topRegion[0]}. התושבים כבר מתחילים להרגיש מיוחדים.`);
   }
 
-  // How many unique settlements
-  const uniqueSettlements = Object.keys(bySettlement).length;
   if (uniqueSettlements > 0) {
-    facts.push(`${uniqueSettlements.toLocaleString('he-IL')} ישובים שונים קיבלו אזעקות אתמול`);
+    facts.push(`אתמול ה"שירות" הגיע ל-${uniqueSettlements.toLocaleString('he-IL')} ישובים שונים. כיסוי מרשים, לצערנו.`);
   }
 
-  // First and last alert
-  const sorted = alerts
-    .map((r) => r.event_time_local)
-    .filter(Boolean)
-    .sort();
-  if (sorted.length >= 2) {
-    const first = sorted[0].slice(0, 5);
-    const last = sorted[sorted.length - 1].slice(0, 5);
-    facts.push(`האזעקה הראשונה אתמול הייתה ב-${first}, האחרונה ב-${last}`);
+  if (firstAlert && lastAlert) {
+    if (firstAlert < '06:00') {
+      facts.push(`האזעקה הראשונה אתמול הייתה ב-${firstAlert}. כן, לפני שתיית הקפה הראשונה.`);
+    } else {
+      facts.push(`האזעקה הראשונה אתמול ב-${firstAlert}, האחרונה ב-${lastAlert}. יום עמוס.`);
+    }
   }
 
-  // Average alerts per hour (active hours only)
-  const activeHours = Object.keys(byHour).length;
-  if (activeHours > 0) {
-    const avg = Math.round(alerts.length / activeHours);
-    facts.push(`בממוצע ${avg.toLocaleString('he-IL')} התראות לשעה אתמול`);
+  if (lastAlert && lastAlert > '22:00') {
+    facts.push(`האזעקה האחרונה אתמול הייתה ב-${lastAlert}. גם מי שהלך לישון מוקדם לא פספס כלום.`);
   }
 
-  // Top threat type
-  const byThreat = {};
-  for (const r of alerts) {
-    const t = r.threat_label;
-    if (t) byThreat[t] = (byThreat[t] || 0) + 1;
-  }
-  const topThreat = Object.entries(byThreat).sort((a, b) => b[1] - a[1])[0];
-  if (topThreat && Object.keys(byThreat).length > 1) {
-    facts.push(`סוג האיום השכיח ביותר אתמול: ${topThreat[0]}`);
+  if (total > 0 && Object.keys(byHour).length > 0) {
+    const activeHours = Object.keys(byHour).length;
+    const perHour = Math.round(total / activeHours);
+    if (perHour >= 5) {
+      facts.push(`בממוצע ${perHour} אזעקות לשעה אתמול. קצב עבודה שגם אמאזון היה מתגאה בו.`);
+    }
   }
 
   return facts;
