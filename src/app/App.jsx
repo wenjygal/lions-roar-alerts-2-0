@@ -3,6 +3,7 @@ import FilterBar from '../components/FilterBar.jsx';
 import KpiGrid from '../components/KpiGrid.jsx';
 import ChartGrid from '../components/ChartGrid.jsx';
 import CustomCutBuilder from '../components/CustomCutBuilder.jsx';
+import DailyFacts from '../components/DailyFacts.jsx';
 import TopTenTable from '../components/TopTenTable.jsx';
 import {
   aggregateByDimension,
@@ -62,6 +63,7 @@ export default function App() {
   const {
     isLoading,
     error,
+    alerts,
     filterOptions,
     availableMunicipalities,
     availableSettlements,
@@ -297,6 +299,7 @@ export default function App() {
         {!isLoading && !error && (
           <>
             <KpiGrid items={kpis} />
+            <DailyFacts alerts={alerts} />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
               <ChartGrid items={charts.slice(0, 2)} />
