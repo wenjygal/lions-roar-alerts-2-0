@@ -16,6 +16,18 @@ const tooltipStyle = {
 const SELECT_CLASS =
   'bg-[#1e1e1e] border border-border text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent';
 
+function XTick({ x, y, payload }) {
+  const v = String(payload.value);
+  const label = v.length > 14 ? v.slice(0, 13) + '…' : v;
+  return (
+    <g transform={`translate(${x},${y + 8})`}>
+      <text transform="rotate(-40)" textAnchor="end" fill="#888" fontSize={10}>
+        {label}
+      </text>
+    </g>
+  );
+}
+
 function formatDate(iso) {
   const p = iso.split('-');
   return `${p[2]}.${p[1]}`;
@@ -218,14 +230,10 @@ function GeoChart({ title, rows, metric }) {
             <XAxis
               dataKey="name"
               interval={0}
-              angle={-35}
-              textAnchor="end"
-              tickFormatter={(v) => v.length > 14 ? v.slice(0, 13) + '…' : v}
-              tick={{ fill: '#888', fontSize: 10 }}
+              tick={<XTick />}
               axisLine={false}
               tickLine={false}
-              height={70}
-              tickMargin={4}
+              height={72}
             />
             <YAxis tick={{ fill: '#888', fontSize: 10 }} axisLine={false} tickLine={false} />
             <Tooltip
