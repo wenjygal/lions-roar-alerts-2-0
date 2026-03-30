@@ -8,11 +8,13 @@ import {
   aggregateByDimension,
   customCutMetrics,
   getDimensionValues,
-  getMunicipalitiesForRegions,
-  getSettlementsForFilter,
+  getAvailableMunicipalities,
+  getAvailableSettlements,
   topNOptions,
 } from '../domain/dashboardSelectors.js';
 import { useDashboardData } from '../hooks/useDashboardData.js';
+
+const TODAY = new Date().toISOString().slice(0, 10);
 
 const initialFilters = {
   fromDate: '2026-03-01',
@@ -26,11 +28,12 @@ const initialFilters = {
 const initialBuilderState = {
   metric: 'מספר אזעקות',
   topN: '10',
-  filterRegions: [],
-  filterMunicipalities: [],
-  filterSettlements: [],
-  filterThreats: [],
-  filterDates: [],
+  filterRegion: '',
+  filterMunicipality: '',
+  filterSettlement: '',
+  filterThreat: '',
+  filterFromDate: '2026-03-01',
+  filterToDate: TODAY,
 };
 
 export default function App() {
@@ -65,66 +68,69 @@ export default function App() {
     [filters],
   );
 
-  // --- Custom Cut: available filter options ---
+  // --- Custom Cut filter options ---
   const cutFilterOptions = useMemo(
     () => ({
       regions: getDimensionValues(filteredAlerts, 'אזור'),
-      municipalities: getMunicipalitiesForRegions(filteredAlerts, builderState.filterRegions),
-      settlements: getSettlementsForFilter(
+      municipalities: getAvailableMunicipalities(filteredAlerts, builderState.filterRegion),
+      settlements: getAvailableSettlements(
         filteredAlerts,
-        builderState.filterRegions,
-        builderState.filterMunicipalities,
+        builderState.filterRegion,
+        builderState.filterMunicipality,
       ),
       threats: getDimensionValues(filteredAlerts, 'סוג אירוע'),
-      dates: getDimensionValues(filteredAlerts, 'תאריך'),
     }),
-    [filteredAlerts, builderState.filterRegions, builderState.filterMunicipalities],
+    [filteredAlerts, builderState.filterRegion, builderState.filterMunicipality],
   );
 
-  // --- Custom Cut: base data filtered by threats + dates ---
+  // --- Custom Cut: base data filtered by dates + threat ---
   const cutBaseAlerts = useMemo(
     () =>
       filteredAlerts.filter((row) => {
-        if (builderState.filterThreats.length && !builderState.filterThreats.includes(row.threat_label)) return false;
-        if (builderState.filterDates.length && !builderState.filterDates.includes(row.event_date)) return false;
+        if (builderState.filterThreat && row.threat_label !== builderState.filterThreat) return false;
+        if (builderState.filterFromDate && row.event_date < builderState.filterFromDate) return false;
+        if (builderState.filterToDate && row.event_date > builderState.filterToDate) return false;
         return true;
       }),
-    [filteredAlerts, builderState.filterThreats, builderState.filterDates],
+    [filteredAlerts, builderState.filterThreat, builderState.filterFromDate, builderState.filterToDate],
   );
 
+  // Region chart
   const regionChartAlerts = useMemo(
     () =>
-      builderState.filterRegions.length
-        ? cutBaseAlerts.filter((r) => builderState.filterRegions.includes(r.region))
+      builderState.filterRegion
+        ? cutBaseAlerts.filter((r) => r.region === builderState.filterRegion)
         : cutBaseAlerts,
-    [cutBaseAlerts, builderState.filterRegions],
+    [cutBaseAlerts, builderState.filterRegion],
   );
 
+  // Municipality chart
   const municipalityChartAlerts = useMemo(() => {
-    if (builderState.filterMunicipalities.length) {
-      return cutBaseAlerts.filter((r) => builderState.filterMunicipalities.includes(r.municipality));
+    if (builderState.filterMunicipality) {
+      return cutBaseAlerts.filter((r) => r.municipality === builderState.filterMunicipality);
     }
-    if (builderState.filterRegions.length) {
-      return cutBaseAlerts.filter((r) => builderState.filterRegions.includes(r.region));
+    if (builderState.filterRegion) {
+      return cutBaseAlerts.filter((r) => r.region === builderState.filterRegion);
     }
     return cutBaseAlerts;
-  }, [cutBaseAlerts, builderState.filterRegions, builderState.filterMunicipalities]);
+  }, [cutBaseAlerts, builderState.filterRegion, builderState.filterMunicipality]);
 
+  // Settlement chart
   const settlementChartAlerts = useMemo(() => {
-    if (builderState.filterSettlements.length) {
+    if (builderState.filterSettlement) {
       return cutBaseAlerts.filter((r) => {
         const s = r.normalized_settlement || r.source_settlement_raw;
-        return builderState.filterSettlements.includes(s);
+        return s === builderState.filterSettlement;
       });
     }
-    if (builderState.filterMunicipalities.length) {
-      return cutBaseAlerts.filter((r) => builderState.filterMunicipalities.includes(r.municipality));
+    if (builderState.filterMunicipality) {
+      return cutBaseAlerts.filter((r) => r.municipality === builderState.filterMunicipality);
     }
-    if (builderState.filterRegions.length) {
-      return cutBaseAlerts.filter((r) => builderState.filterRegions.includes(r.region));
+    if (builderState.filterRegion) {
+      return cutBaseAlerts.filter((r) => r.region === builderState.filterRegion);
     }
     return cutBaseAlerts;
-  }, [cutBaseAlerts, builderState.filterRegions, builderState.filterMunicipalities, builderState.filterSettlements]);
+  }, [cutBaseAlerts, builderState.filterRegion, builderState.filterMunicipality, builderState.filterSettlement]);
 
   const regionRows = useMemo(
     () => aggregateByDimension(regionChartAlerts, ['אזור'], builderState.metric, builderState.topN),
@@ -174,11 +180,11 @@ export default function App() {
 
   function handleBuilderChange(field, value) {
     setBuilderState((current) => {
-      if (field === 'filterRegions') {
-        return { ...current, filterRegions: value, filterMunicipalities: [], filterSettlements: [] };
+      if (field === 'filterRegion') {
+        return { ...current, filterRegion: value, filterMunicipality: '', filterSettlement: '' };
       }
-      if (field === 'filterMunicipalities') {
-        return { ...current, filterMunicipalities: value, filterSettlements: [] };
+      if (field === 'filterMunicipality') {
+        return { ...current, filterMunicipality: value, filterSettlement: '' };
       }
       return { ...current, [field]: value };
     });
@@ -187,17 +193,6 @@ export default function App() {
   function handleBuilderReset() {
     setBuilderState(initialBuilderState);
     showToast('הניתוח המותאם אופס לברירת המחדל');
-  }
-
-  function handleClearCutFilters() {
-    setBuilderState((current) => ({
-      ...current,
-      filterRegions: [],
-      filterMunicipalities: [],
-      filterSettlements: [],
-      filterThreats: [],
-      filterDates: [],
-    }));
   }
 
   return (
@@ -259,9 +254,9 @@ export default function App() {
               regionRows={regionRows}
               municipalityRows={municipalityRows}
               settlementRows={settlementRows}
+              today={TODAY}
               onChange={handleBuilderChange}
               onReset={handleBuilderReset}
-              onClearFilters={handleClearCutFilters}
             />
 
             <TopTenTable rows={topTenRows} />

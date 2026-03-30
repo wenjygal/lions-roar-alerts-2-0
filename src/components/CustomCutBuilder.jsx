@@ -12,27 +12,21 @@ const tooltipStyle = {
   fontSize: 13,
 };
 
+const INPUT_CLASS =
+  'w-full bg-[#1e1e1e] border border-border text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-40';
+
 function AngleTick({ x, y, payload }) {
   const label = String(payload.value).length > 14
     ? String(payload.value).slice(0, 13) + '…'
     : payload.value;
   return (
     <g transform={`translate(${x},${y})`}>
-      <text
-        x={0} y={0} dy={4}
-        textAnchor="end"
-        fill="#888"
-        fontSize={10}
-        transform="rotate(-35)"
-      >
+      <text x={0} y={0} dy={4} textAnchor="end" fill="#888" fontSize={10} transform="rotate(-35)">
         {label}
       </text>
     </g>
   );
 }
-
-const SELECT_CLASS =
-  'bg-[#1e1e1e] border border-border text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent';
 
 export default function CustomCutBuilder({
   metrics,
@@ -42,25 +36,27 @@ export default function CustomCutBuilder({
   regionRows,
   municipalityRows,
   settlementRows,
+  today,
   onChange,
   onReset,
-  onClearFilters,
 }) {
   const {
     metric, topN,
-    filterRegions, filterMunicipalities, filterSettlements, filterThreats, filterDates,
+    filterRegion, filterMunicipality, filterSettlement,
+    filterThreat, filterFromDate, filterToDate,
   } = builderState;
 
-  const { regions, municipalities, settlements, threats, dates } = cutFilterOptions;
+  const { regions, municipalities, settlements, threats } = cutFilterOptions;
 
   const hasActiveFilter =
-    filterRegions.length > 0 || filterMunicipalities.length > 0 || filterSettlements.length > 0 ||
-    filterThreats.length > 0 || filterDates.length > 0;
+    filterRegion || filterMunicipality || filterSettlement ||
+    filterThreat || filterFromDate !== '2026-03-01' || filterToDate !== today;
 
   return (
     <div className="bg-card border border-border rounded-xl p-4 sm:p-5 mb-4">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-medium text-gray-300">חיתוך מותאם אישית</h2>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-sm font-medium text-gray-300">ניתוח גיאוגרפי</h2>
         <button
           type="button"
           onClick={onReset}
@@ -70,85 +66,93 @@ export default function CustomCutBuilder({
         </button>
       </div>
 
-      {/* Metric + TopN */}
-      <div className="flex gap-3 mb-4">
-        <label className="flex flex-col gap-1.5 flex-1">
-          <span className="text-xs font-semibold text-muted">מדד</span>
-          <select value={metric} onChange={(e) => onChange('metric', e.target.value)} className={SELECT_CLASS}>
+      {/* Controls row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+        <Field label="מדד">
+          <select value={metric} onChange={(e) => onChange('metric', e.target.value)} className={INPUT_CLASS}>
             {metrics.map((m) => <option key={m} value={m}>{m}</option>)}
           </select>
-        </label>
-        <label className="flex flex-col gap-1.5 w-28">
-          <span className="text-xs font-semibold text-muted">Top N</span>
-          <select value={topN} onChange={(e) => onChange('topN', e.target.value)} className={SELECT_CLASS}>
+        </Field>
+
+        <Field label="Top N">
+          <select value={topN} onChange={(e) => onChange('topN', e.target.value)} className={INPUT_CLASS}>
             {topNOptions.map((n) => <option key={n} value={n}>{n}</option>)}
           </select>
-        </label>
+        </Field>
+
+        <Field label="מתאריך">
+          <input
+            type="date"
+            value={filterFromDate}
+            min="2026-03-01"
+            max={filterToDate || today}
+            onChange={(e) => onChange('filterFromDate', e.target.value)}
+            className={INPUT_CLASS}
+          />
+        </Field>
+
+        <Field label="עד תאריך">
+          <input
+            type="date"
+            value={filterToDate}
+            min={filterFromDate || '2026-03-01'}
+            max={today}
+            onChange={(e) => onChange('filterToDate', e.target.value)}
+            className={INPUT_CLASS}
+          />
+        </Field>
       </div>
 
-      {/* Filter section */}
-      <div className="border border-border rounded-lg p-3 mb-5 space-y-4">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-muted">
-            סנן נתונים
-            {hasActiveFilter && <span className="text-accent mr-1">· פעיל</span>}
-          </span>
-          {hasActiveFilter && (
-            <button
-              type="button"
-              onClick={onClearFilters}
-              className="text-xs text-muted hover:text-white transition-colors"
-            >
-              נקה סינון
-            </button>
-          )}
-        </div>
+      {/* Location + threat row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+        <Field label="אזור">
+          <select
+            value={filterRegion}
+            onChange={(e) => onChange('filterRegion', e.target.value)}
+            className={INPUT_CLASS}
+          >
+            <option value="">כל האזורים</option>
+            {regions.map((r) => <option key={r} value={r}>{r}</option>)}
+          </select>
+        </Field>
 
-        <MultiCheckbox
-          label="אזורים"
-          options={regions}
-          selected={filterRegions}
-          onChange={(v) => onChange('filterRegions', v)}
-        />
+        <Field label="מועצה">
+          <select
+            value={filterMunicipality}
+            disabled={!filterRegion}
+            onChange={(e) => onChange('filterMunicipality', e.target.value)}
+            className={INPUT_CLASS}
+          >
+            <option value="">{filterRegion ? 'כל המועצות' : 'בחרו אזור קודם'}</option>
+            {municipalities.map((m) => <option key={m} value={m}>{m}</option>)}
+          </select>
+        </Field>
 
-        {municipalities.length > 0 && (
-          <MultiCheckbox
-            label="מועצות"
-            options={municipalities}
-            selected={filterMunicipalities}
-            onChange={(v) => onChange('filterMunicipalities', v)}
-          />
-        )}
+        <Field label="יישוב">
+          <select
+            value={filterSettlement}
+            disabled={!filterRegion}
+            onChange={(e) => onChange('filterSettlement', e.target.value)}
+            className={INPUT_CLASS}
+          >
+            <option value="">{filterRegion ? 'כל היישובים' : 'בחרו אזור קודם'}</option>
+            {settlements.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
 
-        {settlements.length > 0 && (
-          <MultiCheckbox
-            label="יישובים"
-            options={settlements}
-            selected={filterSettlements}
-            onChange={(v) => onChange('filterSettlements', v)}
-          />
-        )}
-
-        {threats.length > 0 && (
-          <MultiCheckbox
-            label="סוגי אירוע"
-            options={threats}
-            selected={filterThreats}
-            onChange={(v) => onChange('filterThreats', v)}
-          />
-        )}
-
-        {dates.length > 0 && (
-          <MultiCheckbox
-            label="תאריכים"
-            options={dates}
-            selected={filterDates}
-            onChange={(v) => onChange('filterDates', v)}
-          />
-        )}
+        <Field label="סוג אירוע">
+          <select
+            value={filterThreat}
+            onChange={(e) => onChange('filterThreat', e.target.value)}
+            className={INPUT_CLASS}
+          >
+            <option value="">כל הסוגים</option>
+            {threats.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </Field>
       </div>
 
-      {/* 3 charts */}
+      {/* 3 geo charts */}
       <div className="space-y-4">
         <GeoChart title="לפי אזור" rows={regionRows} metric={metric} />
         <GeoChart title="לפי מועצה" rows={municipalityRows} metric={metric} />
@@ -166,7 +170,7 @@ function GeoChart({ title, rows, metric }) {
   return (
     <div className="bg-[#111] border border-border/60 rounded-xl p-3 sm:p-4">
       <h3 className="text-xs font-semibold text-muted mb-3">{title}</h3>
-      <div className="h-44 sm:h-56">
+      <div className="h-48 sm:h-56">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 4, right: 8, left: -14, bottom: 10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#2a2020" vertical={false} />
@@ -198,52 +202,11 @@ function GeoChart({ title, rows, metric }) {
   );
 }
 
-function MultiCheckbox({ label, options, selected, onChange }) {
-  const isAll = selected.length === 0;
-
-  function toggle(v) {
-    if (isAll) {
-      onChange(options.filter((x) => x !== v));
-    } else if (selected.includes(v)) {
-      const next = selected.filter((x) => x !== v);
-      onChange(next);
-    } else {
-      onChange([...selected, v]);
-    }
-  }
-
+function Field({ label, children }) {
   return (
-    <div>
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-xs font-semibold text-muted">
-          {label}
-          {!isAll && <span className="text-accent mr-1">· {selected.length} נבחרו</span>}
-        </span>
-        {!isAll && (
-          <button
-            type="button"
-            onClick={() => onChange([])}
-            className="text-xs text-muted hover:text-white transition-colors"
-          >
-            הכל
-          </button>
-        )}
-      </div>
-      <div className="flex flex-wrap gap-x-4 gap-y-1.5 max-h-24 overflow-y-auto">
-        {options.map((v) => (
-          <label key={v} className="flex items-center gap-1.5 cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={isAll || selected.includes(v)}
-              onChange={() => toggle(v)}
-              className="accent-[#e85d04] w-3.5 h-3.5 cursor-pointer"
-            />
-            <span className="text-xs text-gray-300 group-hover:text-white transition-colors whitespace-nowrap">
-              {v}
-            </span>
-          </label>
-        ))}
-      </div>
-    </div>
+    <label className="flex flex-col gap-1.5">
+      <span className="text-xs font-semibold text-muted">{label}</span>
+      {children}
+    </label>
   );
 }
