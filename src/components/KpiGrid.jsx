@@ -15,7 +15,6 @@ export default function KpiGrid({ items }) {
         >
           <span className="text-xs sm:text-sm text-muted">{item.label}</span>
           <div className="text-xl sm:text-2xl font-bold text-white leading-tight">{item.value}</div>
-          {item.meta && <div className="text-xs text-muted">{item.meta}</div>}
         </div>
       ))}
     </div>
