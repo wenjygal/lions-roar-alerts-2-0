@@ -13,38 +13,30 @@ const tooltipStyle = {
 };
 
 const SELECT_CLASS =
-  'bg-[#1e1e1e] border border-border text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent w-full';
+  'bg-[#1e1e1e] border border-border text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent';
 
 export default function CustomCutBuilder({
-  dimensions,
   metrics,
   topNOptions,
   builderState,
-  cut1AvailableValues,
-  previewRows,
+  cutFilterOptions,
+  regionRows,
+  municipalityRows,
+  settlementRows,
   onChange,
   onReset,
+  onClearFilters,
 }) {
-  const { cut1, cut2, metric, topN, selectedValues } = builderState;
+  const {
+    metric, topN,
+    filterRegions, filterMunicipalities, filterSettlements, filterThreats, filterDates,
+  } = builderState;
 
-  function handleValueToggle(v) {
-    if (selectedValues.length === 0) {
-      onChange('selectedValues', cut1AvailableValues.filter((x) => x !== v));
-    } else if (selectedValues.includes(v)) {
-      const next = selectedValues.filter((x) => x !== v);
-      onChange('selectedValues', next);
-    } else {
-      onChange('selectedValues', [...selectedValues, v]);
-    }
-  }
+  const { regions, municipalities, settlements, threats, dates } = cutFilterOptions;
 
-  function isChecked(v) {
-    return selectedValues.length === 0 || selectedValues.includes(v);
-  }
-  const chartData = previewRows.map((row) => ({
-    name: row.label,
-    value: row.rawValue ?? row.rawValue,
-  }));
+  const hasActiveFilter =
+    filterRegions.length > 0 || filterMunicipalities.length > 0 || filterSettlements.length > 0 ||
+    filterThreats.length > 0 || filterDates.length > 0;
 
   return (
     <div className="bg-card border border-border rounded-xl p-4 sm:p-5 mb-4">
@@ -59,137 +51,180 @@ export default function CustomCutBuilder({
         </button>
       </div>
 
-      {/* Controls */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-        <Field label="קבץ לפי">
-          <select value={cut1} onChange={(e) => onChange('cut1', e.target.value)} className={SELECT_CLASS}>
-            {dimensions.map((d) => <option key={d} value={d}>{d}</option>)}
-          </select>
-        </Field>
-
-        <Field label="ואז לפי">
-          <select value={cut2} onChange={(e) => onChange('cut2', e.target.value)} className={SELECT_CLASS}>
-            <option value="">ללא</option>
-            {dimensions.map((d) => <option key={d} value={d}>{d}</option>)}
-          </select>
-        </Field>
-
-        <Field label="מדד">
+      {/* Metric + TopN */}
+      <div className="flex gap-3 mb-4">
+        <label className="flex flex-col gap-1.5 flex-1">
+          <span className="text-xs font-semibold text-muted">מדד</span>
           <select value={metric} onChange={(e) => onChange('metric', e.target.value)} className={SELECT_CLASS}>
             {metrics.map((m) => <option key={m} value={m}>{m}</option>)}
           </select>
-        </Field>
-
-        <Field label="Top N">
+        </label>
+        <label className="flex flex-col gap-1.5 w-28">
+          <span className="text-xs font-semibold text-muted">Top N</span>
           <select value={topN} onChange={(e) => onChange('topN', e.target.value)} className={SELECT_CLASS}>
             {topNOptions.map((n) => <option key={n} value={n}>{n}</option>)}
           </select>
-        </Field>
+        </label>
       </div>
 
-      {/* Value filter */}
-      {cut1AvailableValues.length > 0 && (
-        <div className="border border-border rounded-lg p-3 mb-5">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-muted">
-              סנן ערכי {cut1}
-              {selectedValues.length > 0 && (
-                <span className="text-accent mr-1">· {selectedValues.length} נבחרו</span>
-              )}
-            </span>
+      {/* Filter section */}
+      <div className="border border-border rounded-lg p-3 mb-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-muted">
+            סנן נתונים
+            {hasActiveFilter && <span className="text-accent mr-1">· פעיל</span>}
+          </span>
+          {hasActiveFilter && (
             <button
               type="button"
-              onClick={() => onChange('selectedValues', [])}
+              onClick={onClearFilters}
               className="text-xs text-muted hover:text-white transition-colors"
             >
-              בחר הכל
+              נקה סינון
             </button>
-          </div>
-          <div className="flex flex-wrap gap-x-4 gap-y-2 max-h-36 overflow-y-auto pr-1">
-            {cut1AvailableValues.map((v) => (
-              <label key={v} className="flex items-center gap-1.5 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={isChecked(v)}
-                  onChange={() => handleValueToggle(v)}
-                  className="accent-[#e85d04] w-3.5 h-3.5 cursor-pointer"
-                />
-                <span className="text-xs text-gray-300 group-hover:text-white transition-colors whitespace-nowrap">
-                  {v}
-                </span>
-              </label>
-            ))}
-          </div>
+          )}
         </div>
-      )}
 
-      {/* Results */}
-      {previewRows.length ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Chart */}
-          <div className="h-56 sm:h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 36 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2a2020" vertical={false} />
-                <XAxis
-                  dataKey="name"
-                  interval={0}
-                  tick={{ fill: '#888', fontSize: 10 }}
-                  axisLine={false}
-                  tickLine={false}
-                  height={48}
-                  tickMargin={8}
-                />
-                <YAxis tick={{ fill: '#888', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip
-                  contentStyle={tooltipStyle}
-                  itemStyle={{ color: '#e5e5e5' }}
-                  cursor={{ fill: 'rgba(232,93,4,0.1)' }}
-                  formatter={(v) => [v.toLocaleString('he-IL'), metric]}
-                />
-                <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                  {chartData.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+        <MultiCheckbox
+          label="אזורים"
+          options={regions}
+          selected={filterRegions}
+          onChange={(v) => onChange('filterRegions', v)}
+        />
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-right pb-3 text-muted font-medium">קבוצה</th>
-                  <th className="text-right pb-3 text-muted font-medium">{metric}</th>
-                  <th className="text-right pb-3 text-muted font-medium hidden sm:table-cell">מגמה</th>
-                </tr>
-              </thead>
-              <tbody>
-                {previewRows.map((row) => (
-                  <tr key={row.label} className="border-b border-border/50">
-                    <td className="py-2.5 text-gray-200">{row.label}</td>
-                    <td className="py-2.5 text-accent font-semibold">{row.displayValue}</td>
-                    <td className="py-2.5 text-muted hidden sm:table-cell">{row.trend}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : (
-        <p className="text-muted text-sm py-6 text-center">אין תוצאות לחיתוך הנוכחי</p>
-      )}
+        {municipalities.length > 0 && (
+          <MultiCheckbox
+            label="מועצות"
+            options={municipalities}
+            selected={filterMunicipalities}
+            onChange={(v) => onChange('filterMunicipalities', v)}
+          />
+        )}
+
+        {settlements.length > 0 && (
+          <MultiCheckbox
+            label="יישובים"
+            options={settlements}
+            selected={filterSettlements}
+            onChange={(v) => onChange('filterSettlements', v)}
+          />
+        )}
+
+        {threats.length > 0 && (
+          <MultiCheckbox
+            label="סוגי אירוע"
+            options={threats}
+            selected={filterThreats}
+            onChange={(v) => onChange('filterThreats', v)}
+          />
+        )}
+
+        {dates.length > 0 && (
+          <MultiCheckbox
+            label="תאריכים"
+            options={dates}
+            selected={filterDates}
+            onChange={(v) => onChange('filterDates', v)}
+          />
+        )}
+      </div>
+
+      {/* 3 charts */}
+      <div className="space-y-4">
+        <GeoChart title="לפי אזור" rows={regionRows} metric={metric} />
+        <GeoChart title="לפי מועצה" rows={municipalityRows} metric={metric} />
+        <GeoChart title="לפי יישוב" rows={settlementRows} metric={metric} />
+      </div>
     </div>
   );
 }
 
-function Field({ label, children }) {
+function GeoChart({ title, rows, metric }) {
+  if (!rows.length) return null;
+
+  const data = rows.map((r) => ({ name: r.label, value: r.rawValue }));
+
   return (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-xs font-semibold text-muted">{label}</span>
-      {children}
-    </label>
+    <div className="bg-[#111] border border-border/60 rounded-xl p-3 sm:p-4">
+      <h3 className="text-xs font-semibold text-muted mb-3">{title}</h3>
+      <div className="h-44 sm:h-56">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} margin={{ top: 4, right: 8, left: -14, bottom: 36 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#2a2020" vertical={false} />
+            <XAxis
+              dataKey="name"
+              interval={0}
+              tick={{ fill: '#888', fontSize: 10 }}
+              axisLine={false}
+              tickLine={false}
+              height={48}
+              tickMargin={8}
+            />
+            <YAxis tick={{ fill: '#888', fontSize: 10 }} axisLine={false} tickLine={false} />
+            <Tooltip
+              contentStyle={tooltipStyle}
+              itemStyle={{ color: '#e5e5e5' }}
+              cursor={{ fill: 'rgba(232,93,4,0.08)' }}
+              formatter={(v) => [v.toLocaleString('he-IL'), metric]}
+            />
+            <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+              {data.map((_, i) => (
+                <Cell key={i} fill={COLORS[i % COLORS.length]} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+function MultiCheckbox({ label, options, selected, onChange }) {
+  const isAll = selected.length === 0;
+
+  function toggle(v) {
+    if (isAll) {
+      onChange(options.filter((x) => x !== v));
+    } else if (selected.includes(v)) {
+      const next = selected.filter((x) => x !== v);
+      onChange(next);
+    } else {
+      onChange([...selected, v]);
+    }
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-xs font-semibold text-muted">
+          {label}
+          {!isAll && <span className="text-accent mr-1">· {selected.length} נבחרו</span>}
+        </span>
+        {!isAll && (
+          <button
+            type="button"
+            onClick={() => onChange([])}
+            className="text-xs text-muted hover:text-white transition-colors"
+          >
+            הכל
+          </button>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-x-4 gap-y-1.5 max-h-24 overflow-y-auto">
+        {options.map((v) => (
+          <label key={v} className="flex items-center gap-1.5 cursor-pointer group">
+            <input
+              type="checkbox"
+              checked={isAll || selected.includes(v)}
+              onChange={() => toggle(v)}
+              className="accent-[#e85d04] w-3.5 h-3.5 cursor-pointer"
+            />
+            <span className="text-xs text-gray-300 group-hover:text-white transition-colors whitespace-nowrap">
+              {v}
+            </span>
+          </label>
+        ))}
+      </div>
+    </div>
   );
 }

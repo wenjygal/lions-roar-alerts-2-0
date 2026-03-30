@@ -144,19 +144,33 @@ export function getDimensionValues(alerts, dimension) {
   );
 }
 
-export function aggregateByDimension(alerts, dimensions, metric, topN = '10', selectedValues = []) {
+export function getMunicipalitiesForRegions(alerts, regions) {
+  const source = alerts.filter((row) => {
+    if (row.is_ignored === 'TRUE') return false;
+    return !regions.length || regions.includes(row.region);
+  });
+  return uniqueSorted(source.map((row) => row.municipality).filter(Boolean));
+}
+
+export function getSettlementsForFilter(alerts, regions, municipalities) {
+  const source = alerts.filter((row) => {
+    if (row.is_ignored === 'TRUE') return false;
+    if (municipalities.length) return municipalities.includes(row.municipality);
+    if (regions.length) return regions.includes(row.region);
+    return true;
+  });
+  return uniqueSorted(
+    source.map((row) => row.normalized_settlement || row.source_settlement_raw).filter(Boolean),
+  );
+}
+
+export function aggregateByDimension(alerts, dimensions, metric, topN = '10') {
   const activeDimensions = dimensions.filter(Boolean);
   if (!activeDimensions.length) return [];
 
-  const primaryAccessor = dimensionAccessors[activeDimensions[0]];
-  const source =
-    selectedValues.length > 0
-      ? alerts.filter((row) => selectedValues.includes(primaryAccessor(row)))
-      : alerts;
-
   const buckets = new Map();
 
-  for (const row of source) {
+  for (const row of alerts) {
     const labels = activeDimensions.map((dimension) => dimensionAccessors[dimension](row));
     const key = labels.join(' > ');
 

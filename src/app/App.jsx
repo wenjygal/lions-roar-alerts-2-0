@@ -6,9 +6,10 @@ import CustomCutBuilder from '../components/CustomCutBuilder.jsx';
 import TopTenTable from '../components/TopTenTable.jsx';
 import {
   aggregateByDimension,
-  customCutDimensions,
   customCutMetrics,
   getDimensionValues,
+  getMunicipalitiesForRegions,
+  getSettlementsForFilter,
   topNOptions,
 } from '../domain/dashboardSelectors.js';
 import { useDashboardData } from '../hooks/useDashboardData.js';
@@ -23,11 +24,13 @@ const initialFilters = {
 };
 
 const initialBuilderState = {
-  cut1: 'אזור',
-  cut2: 'מועצה',
   metric: 'מספר אזעקות',
   topN: '10',
-  selectedValues: [],
+  filterRegions: [],
+  filterMunicipalities: [],
+  filterSettlements: [],
+  filterThreats: [],
+  filterDates: [],
 };
 
 export default function App() {
@@ -62,23 +65,83 @@ export default function App() {
     [filters],
   );
 
-  const cut1AvailableValues = useMemo(
-    () => getDimensionValues(filteredAlerts, builderState.cut1),
-    [filteredAlerts, builderState.cut1],
-  );
-
-  const customCutRows = useMemo(
-    () =>
-      aggregateByDimension(
+  // --- Custom Cut: available filter options ---
+  const cutFilterOptions = useMemo(
+    () => ({
+      regions: getDimensionValues(filteredAlerts, 'אזור'),
+      municipalities: getMunicipalitiesForRegions(filteredAlerts, builderState.filterRegions),
+      settlements: getSettlementsForFilter(
         filteredAlerts,
-        [builderState.cut1, builderState.cut2],
-        builderState.metric,
-        builderState.topN,
-        builderState.selectedValues,
+        builderState.filterRegions,
+        builderState.filterMunicipalities,
       ),
-    [builderState, filteredAlerts],
+      threats: getDimensionValues(filteredAlerts, 'סוג אירוע'),
+      dates: getDimensionValues(filteredAlerts, 'תאריך'),
+    }),
+    [filteredAlerts, builderState.filterRegions, builderState.filterMunicipalities],
   );
 
+  // --- Custom Cut: base data filtered by threats + dates ---
+  const cutBaseAlerts = useMemo(
+    () =>
+      filteredAlerts.filter((row) => {
+        if (builderState.filterThreats.length && !builderState.filterThreats.includes(row.threat_label)) return false;
+        if (builderState.filterDates.length && !builderState.filterDates.includes(row.event_date)) return false;
+        return true;
+      }),
+    [filteredAlerts, builderState.filterThreats, builderState.filterDates],
+  );
+
+  const regionChartAlerts = useMemo(
+    () =>
+      builderState.filterRegions.length
+        ? cutBaseAlerts.filter((r) => builderState.filterRegions.includes(r.region))
+        : cutBaseAlerts,
+    [cutBaseAlerts, builderState.filterRegions],
+  );
+
+  const municipalityChartAlerts = useMemo(() => {
+    if (builderState.filterMunicipalities.length) {
+      return cutBaseAlerts.filter((r) => builderState.filterMunicipalities.includes(r.municipality));
+    }
+    if (builderState.filterRegions.length) {
+      return cutBaseAlerts.filter((r) => builderState.filterRegions.includes(r.region));
+    }
+    return cutBaseAlerts;
+  }, [cutBaseAlerts, builderState.filterRegions, builderState.filterMunicipalities]);
+
+  const settlementChartAlerts = useMemo(() => {
+    if (builderState.filterSettlements.length) {
+      return cutBaseAlerts.filter((r) => {
+        const s = r.normalized_settlement || r.source_settlement_raw;
+        return builderState.filterSettlements.includes(s);
+      });
+    }
+    if (builderState.filterMunicipalities.length) {
+      return cutBaseAlerts.filter((r) => builderState.filterMunicipalities.includes(r.municipality));
+    }
+    if (builderState.filterRegions.length) {
+      return cutBaseAlerts.filter((r) => builderState.filterRegions.includes(r.region));
+    }
+    return cutBaseAlerts;
+  }, [cutBaseAlerts, builderState.filterRegions, builderState.filterMunicipalities, builderState.filterSettlements]);
+
+  const regionRows = useMemo(
+    () => aggregateByDimension(regionChartAlerts, ['אזור'], builderState.metric, builderState.topN),
+    [regionChartAlerts, builderState.metric, builderState.topN],
+  );
+
+  const municipalityRows = useMemo(
+    () => aggregateByDimension(municipalityChartAlerts, ['מועצה'], builderState.metric, builderState.topN),
+    [municipalityChartAlerts, builderState.metric, builderState.topN],
+  );
+
+  const settlementRows = useMemo(
+    () => aggregateByDimension(settlementChartAlerts, ['יישוב'], builderState.metric, builderState.topN),
+    [settlementChartAlerts, builderState.metric, builderState.topN],
+  );
+
+  // --- Handlers ---
   function showToast(message) {
     setToast(message);
     window.clearTimeout(showToast.timeoutId);
@@ -111,8 +174,11 @@ export default function App() {
 
   function handleBuilderChange(field, value) {
     setBuilderState((current) => {
-      if (field === 'cut1') {
-        return { ...current, cut1: value, selectedValues: [] };
+      if (field === 'filterRegions') {
+        return { ...current, filterRegions: value, filterMunicipalities: [], filterSettlements: [] };
+      }
+      if (field === 'filterMunicipalities') {
+        return { ...current, filterMunicipalities: value, filterSettlements: [] };
       }
       return { ...current, [field]: value };
     });
@@ -121,6 +187,17 @@ export default function App() {
   function handleBuilderReset() {
     setBuilderState(initialBuilderState);
     showToast('הניתוח המותאם אופס לברירת המחדל');
+  }
+
+  function handleClearCutFilters() {
+    setBuilderState((current) => ({
+      ...current,
+      filterRegions: [],
+      filterMunicipalities: [],
+      filterSettlements: [],
+      filterThreats: [],
+      filterDates: [],
+    }));
   }
 
   return (
@@ -175,14 +252,16 @@ export default function App() {
             </div>
 
             <CustomCutBuilder
-              dimensions={customCutDimensions}
               metrics={customCutMetrics}
               topNOptions={topNOptions}
               builderState={builderState}
-              cut1AvailableValues={cut1AvailableValues}
-              previewRows={customCutRows}
+              cutFilterOptions={cutFilterOptions}
+              regionRows={regionRows}
+              municipalityRows={municipalityRows}
+              settlementRows={settlementRows}
               onChange={handleBuilderChange}
               onReset={handleBuilderReset}
+              onClearFilters={handleClearCutFilters}
             />
 
             <TopTenTable rows={topTenRows} />
