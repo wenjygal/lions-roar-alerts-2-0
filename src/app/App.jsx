@@ -239,14 +239,14 @@ export default function App() {
       <header className="bg-card border border-border rounded-xl p-4 sm:p-6 mb-4 flex items-center gap-5">
         <div className="flex-1 text-right">
           <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight">שאגת האריה 2.0</h1>
-          <p className="text-accent text-sm sm:text-base font-semibold mt-2">סטטיסטיקת אזעקות מתעדכנת</p>
-          <p className="text-muted text-xs mt-1">סיכום אזעקות וניתוח סטטיסטי</p>
-          <p className="text-muted text-xs mt-0.5">הנתונים כוללים אזעקות צבע אדום בלבד ממערכת פיקוד העורף. הנתונים מוצגים כפי שהתקבלו — אין אחריות לנכונותם.</p>
+          <p className="text-accent text-xl sm:text-2xl font-semibold mt-2">סטטיסטיקת אזעקות מתעדכנת</p>
+          <p className="text-muted text-sm mt-1">סיכום אזעקות וניתוח סטטיסטי</p>
+          <p className="text-muted text-sm mt-0.5">הנתונים כוללים אזעקות צבע אדום בלבד ממערכת פיקוד העורף. הנתונים מוצגים כפי שהתקבלו — אין אחריות לנכונותם.</p>
         </div>
         <img
           src="./og-lion-facepalm.png"
           alt="לוגו שאגת האריה"
-          className="w-28 h-28 sm:w-36 sm:h-36 rounded-xl object-cover flex-shrink-0"
+          className="w-56 h-56 sm:w-72 sm:h-72 rounded-xl object-cover flex-shrink-0"
         />
       </header>
 
