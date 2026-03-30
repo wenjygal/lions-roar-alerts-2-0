@@ -34,22 +34,20 @@ function MultiDropdown({ label, options, selected, onChange, formatLabel, placeh
     return () => document.removeEventListener('mousedown', onClickOutside);
   }, []);
 
-  const isAll = selected.length === 0;
+  const hasSelection = selected.length > 0;
   const display = formatLabel || ((v) => v);
 
   function toggle(v) {
-    if (isAll) {
-      onChange(options.filter((x) => x !== v));
-    } else if (selected.includes(v)) {
+    if (selected.includes(v)) {
       onChange(selected.filter((x) => x !== v));
     } else {
       onChange([...selected, v]);
     }
   }
 
-  const buttonLabel = isAll
-    ? (placeholder || `כל ה${label}`)
-    : `${label} · ${selected.length} נבחרו`;
+  const buttonLabel = hasSelection
+    ? `${label} · ${selected.length} נבחרו`
+    : (placeholder || `כל ה${label}`);
 
   return (
     <div className="flex flex-col gap-1.5 relative" ref={ref}>
@@ -59,26 +57,26 @@ function MultiDropdown({ label, options, selected, onChange, formatLabel, placeh
         onClick={() => setOpen((o) => !o)}
         className="flex items-center justify-between gap-2 bg-[#1e1e1e] border border-border text-gray-200 rounded-lg px-3 py-2 text-sm hover:border-muted transition-colors text-right w-full"
       >
-        <span className={`truncate ${isAll ? 'text-muted' : 'text-accent'}`}>{buttonLabel}</span>
+        <span className={`truncate ${hasSelection ? 'text-accent' : 'text-muted'}`}>{buttonLabel}</span>
         <span className="text-muted text-xs flex-shrink-0">{open ? '▲' : '▼'}</span>
       </button>
 
       {open && (
         <div className="absolute top-full mt-1 right-0 z-30 bg-[#1e1e1e] border border-border rounded-lg shadow-xl min-w-full w-max max-w-xs">
-          {/* Select all / clear */}
+          {/* Clear all */}
           <div className="flex items-center justify-between px-3 py-2 border-b border-border">
             <button
               type="button"
               onClick={() => onChange([])}
               className="text-xs text-muted hover:text-white transition-colors"
             >
-              הכל
+              נקה הכל
             </button>
-            {!isAll && (
+            {hasSelection && (
               <span className="text-xs text-accent">{selected.length} נבחרו</span>
             )}
           </div>
-          {/* Options */}
+          {/* Options — nothing checked by default */}
           <div className="max-h-52 overflow-y-auto py-1">
             {options.map((v) => (
               <label
@@ -87,7 +85,7 @@ function MultiDropdown({ label, options, selected, onChange, formatLabel, placeh
               >
                 <input
                   type="checkbox"
-                  checked={isAll || selected.includes(v)}
+                  checked={selected.includes(v)}
                   onChange={() => toggle(v)}
                   className="accent-[#e85d04] w-3.5 h-3.5 flex-shrink-0 cursor-pointer"
                 />
