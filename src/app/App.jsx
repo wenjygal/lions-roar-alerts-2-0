@@ -14,6 +14,27 @@ import {
 } from '../domain/dashboardSelectors.js';
 import { useDashboardData } from '../hooks/useDashboardData.js';
 
+const QUICK_FILTERS = [
+  { label: 'היום', days: 0 },
+  { label: '7 ימים', days: 7 },
+  { label: '28 ימים', days: 28 },
+  { label: 'הכל', days: null },
+];
+
+function toISODate(d) {
+  return d.toISOString().split('T')[0];
+}
+
+function getQuickRange(days) {
+  const today = new Date();
+  const toDate = toISODate(today);
+  if (days === null) return { fromDate: '', toDate: '' };
+  if (days === 0) return { fromDate: toDate, toDate };
+  const from = new Date(today);
+  from.setDate(from.getDate() - days);
+  return { fromDate: toISODate(from), toDate };
+}
+
 const initialFilters = {
   fromDate: '2026-03-01',
   toDate: '2026-03-29',
@@ -187,6 +208,19 @@ export default function App() {
     });
   }
 
+  function applyQuickFilter(days) {
+    const range = getQuickRange(days);
+    setFilters((current) => ({ ...current, fromDate: range.fromDate, toDate: range.toDate }));
+  }
+
+  const activeQuick = useMemo(() => {
+    const match = QUICK_FILTERS.find(({ days }) => {
+      const range = getQuickRange(days);
+      return filters.fromDate === range.fromDate && filters.toDate === range.toDate;
+    });
+    return match ? match.label : null;
+  }, [filters.fromDate, filters.toDate]);
+
   function handleBuilderReset() {
     setBuilderState(initialBuilderState);
     showToast('הניתוח המותאם אופס לברירת המחדל');
@@ -202,26 +236,41 @@ export default function App() {
       </a>
 
       {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-6">
-        <div className="flex items-start gap-3">
-          <img
-            src="./og-lion-facepalm.png"
-            alt="לוגו שאגת האריה"
-            className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border border-border shadow-lg shadow-black/30 flex-shrink-0"
-          />
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white">שאגת האריה 2.0</h1>
-            <p className="text-muted text-sm mt-1">דשבורד אזעקות · פילוח דינמי · נתוני פיקוד העורף</p>
-            <p className="text-muted text-xs mt-0.5">האתר מציג נתונים רשמיים של פיקוד העורף. הנתונים מוצגים כפי שהתקבלו — אין אחריות לנכונותם.</p>
-          </div>
+      <header className="bg-card border border-border rounded-xl p-4 sm:p-5 mb-4 flex items-center gap-4">
+        <div className="flex-1 text-right">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white">שאגת האריה 2.0</h1>
+          <p className="text-accent text-sm font-semibold mt-1">דשבורד אזעקות · פילוח דינמי · נתוני פיקוד העורף</p>
+          <p className="text-muted text-xs mt-1">סיכום אזעקות וניתוח סטטיסטי</p>
+          <p className="text-muted text-xs mt-0.5">האתר מציג נתונים רשמיים של פיקוד העורף. הנתונים מוצגים כפי שהתקבלו — אין אחריות לנכונותם.</p>
         </div>
-        <div className="flex items-center gap-3 text-xs text-muted">
-          <span>
-            {filteredAlerts.length.toLocaleString('he-IL')} שורות
-            {activeFilters.length ? ` · ${activeFilters.join(' | ')}` : ''}
-          </span>
-        </div>
+        <img
+          src="./og-lion-facepalm.png"
+          alt="לוגו שאגת האריה"
+          className="w-28 h-28 sm:w-36 sm:h-36 rounded-xl object-cover flex-shrink-0"
+        />
       </header>
+
+      {/* Quick date filters */}
+      <div className="flex gap-2 mb-4 justify-end flex-wrap">
+        {QUICK_FILTERS.map(({ label, days }) => {
+          const isActive = activeQuick === label;
+          return (
+            <button
+              key={label}
+              type="button"
+              onClick={() => applyQuickFilter(days)}
+              aria-pressed={isActive}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg ${
+                isActive
+                  ? 'bg-accent text-white'
+                  : 'bg-card border border-border text-muted hover:text-white hover:border-muted'
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
 
       <main id="main-content">
         {error && (
