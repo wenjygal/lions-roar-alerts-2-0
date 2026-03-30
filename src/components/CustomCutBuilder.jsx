@@ -12,6 +12,25 @@ const tooltipStyle = {
   fontSize: 13,
 };
 
+function AngleTick({ x, y, payload }) {
+  const label = String(payload.value).length > 14
+    ? String(payload.value).slice(0, 13) + '…'
+    : payload.value;
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text
+        x={0} y={0} dy={4}
+        textAnchor="end"
+        fill="#888"
+        fontSize={10}
+        transform="rotate(-35)"
+      >
+        {label}
+      </text>
+    </g>
+  );
+}
+
 const SELECT_CLASS =
   'bg-[#1e1e1e] border border-border text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent';
 
@@ -149,16 +168,16 @@ function GeoChart({ title, rows, metric }) {
       <h3 className="text-xs font-semibold text-muted mb-3">{title}</h3>
       <div className="h-44 sm:h-56">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 4, right: 8, left: -14, bottom: 36 }}>
+          <BarChart data={data} margin={{ top: 4, right: 8, left: -14, bottom: 10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#2a2020" vertical={false} />
             <XAxis
               dataKey="name"
               interval={0}
-              tick={{ fill: '#888', fontSize: 10 }}
+              tick={<AngleTick />}
               axisLine={false}
               tickLine={false}
-              height={48}
-              tickMargin={8}
+              height={64}
+              tickMargin={6}
             />
             <YAxis tick={{ fill: '#888', fontSize: 10 }} axisLine={false} tickLine={false} />
             <Tooltip

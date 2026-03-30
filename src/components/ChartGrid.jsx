@@ -15,6 +15,25 @@ const tooltipStyle = {
 const tooltipItemStyle = { color: '#e5e5e5' };
 const tooltipLabelStyle = { color: '#aaa', marginBottom: 4 };
 
+function AngleTick({ x, y, payload }) {
+  const label = String(payload.value).length > 12
+    ? String(payload.value).slice(0, 11) + '…'
+    : payload.value;
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text
+        x={0} y={0} dy={4}
+        textAnchor="end"
+        fill="#888"
+        fontSize={10}
+        transform="rotate(-35)"
+      >
+        {label}
+      </text>
+    </g>
+  );
+}
+
 function toRechartsData(bars) {
   return bars.map((bar) => ({ name: bar.label, value: bar.rawValue ?? bar.value }));
 }
@@ -61,14 +80,14 @@ function BarChartCard({ title, bars, compact }) {
       <h2 className="text-sm font-medium text-gray-300 mb-4">{title}</h2>
       <div className={height}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 5, right: 10, left: -10, bottom: 28 }}>
+          <BarChart data={data} margin={{ top: 5, right: 10, left: -10, bottom: 10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#2a2020" vertical={false} />
             <XAxis
               dataKey="name"
               interval={0}
-              height={42}
-              tickMargin={10}
-              tick={{ fill: '#888', fontSize: 11 }}
+              height={64}
+              tickMargin={6}
+              tick={<AngleTick />}
               axisLine={false}
               tickLine={false}
               padding={{ left: 10, right: 10 }}
