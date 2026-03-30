@@ -53,6 +53,11 @@ export function getAvailableSettlements(alerts, region, municipality) {
         if (region) return row.region === region;
         return false;
       })
+      .filter((row) => {
+        const s = row.normalized_settlement || row.source_settlement_raw;
+        // exclude rows where settlement name = municipality name (no added granularity)
+        return s && s !== row.municipality;
+      })
       .map((row) => row.normalized_settlement || row.source_settlement_raw)
       .filter(Boolean),
   );
