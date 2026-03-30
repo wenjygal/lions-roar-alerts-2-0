@@ -19,11 +19,16 @@ function XTick({ x, y, payload }) {
   const v = String(payload.value);
   const label = v.length > 12 ? v.slice(0, 11) + '…' : v;
   return (
-    <g transform={`translate(${x},${y + 8})`}>
-      <text transform="rotate(-40)" textAnchor="end" fill="#888" fontSize={10}>
-        {label}
-      </text>
-    </g>
+    <text
+      x={x}
+      y={y + 4}
+      textAnchor="middle"
+      transform={`rotate(-45, ${x}, ${y + 4})`}
+      fill="#888"
+      fontSize={10}
+    >
+      {label}
+    </text>
   );
 }
 

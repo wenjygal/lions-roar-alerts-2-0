@@ -6,13 +6,14 @@ export default function TopTenTable({ rows }) {
       {rows.length ? (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
+            <caption className="sr-only">Top 10 אזורים מובילים לפי מספר אזעקות</caption>
             <thead>
               <tr className="border-b border-border">
-                <th className="text-right pb-3 text-muted font-medium w-8">#</th>
-                <th className="text-right pb-3 text-muted font-medium">קבוצה</th>
-                <th className="text-right pb-3 text-muted font-medium">אזעקות</th>
-                <th className="text-right pb-3 text-muted font-medium hidden sm:table-cell">הופעות</th>
-                <th className="text-right pb-3 text-muted font-medium hidden sm:table-cell">יישובים</th>
+                <th scope="col" className="text-right pb-3 text-muted font-medium w-8">#</th>
+                <th scope="col" className="text-right pb-3 text-muted font-medium">קבוצה</th>
+                <th scope="col" className="text-right pb-3 text-muted font-medium">אזעקות</th>
+                <th scope="col" className="text-right pb-3 text-muted font-medium hidden sm:table-cell">הופעות</th>
+                <th scope="col" className="text-right pb-3 text-muted font-medium hidden sm:table-cell">יישובים</th>
               </tr>
             </thead>
             <tbody>

@@ -1,5 +1,5 @@
 const INPUT_CLASS =
-  'w-full bg-[#1e1e1e] border border-border text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-40';
+  'w-full bg-[#1e1e1e] border border-border text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:opacity-40';
 
 export default function FilterBar({
   filters,
@@ -19,15 +19,17 @@ export default function FilterBar({
         <button
           type="button"
           onClick={onReset}
-          className="text-xs text-muted hover:text-white border border-border rounded-lg px-3 py-1.5 transition-colors"
+          aria-label="איפוס כל הפילטרים"
+          className="text-xs text-muted hover:text-white border border-border rounded-lg px-3 py-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
           איפוס
         </button>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <Field label="מתאריך">
+        <Field label="מתאריך" id="filter-from-date">
           <input
+            id="filter-from-date"
             type="date"
             value={filters.fromDate}
             onChange={(e) => onChange('fromDate', e.target.value)}
@@ -35,8 +37,9 @@ export default function FilterBar({
           />
         </Field>
 
-        <Field label="עד תאריך">
+        <Field label="עד תאריך" id="filter-to-date">
           <input
+            id="filter-to-date"
             type="date"
             value={filters.toDate}
             onChange={(e) => onChange('toDate', e.target.value)}
@@ -44,8 +47,9 @@ export default function FilterBar({
           />
         </Field>
 
-        <Field label="אזור">
+        <Field label="אזור" id="filter-region">
           <select
+            id="filter-region"
             value={filters.region}
             onChange={(e) => onChange('region', e.target.value)}
             className={INPUT_CLASS}
@@ -57,8 +61,9 @@ export default function FilterBar({
           </select>
         </Field>
 
-        <Field label="מועצה">
+        <Field label="מועצה" id="filter-municipality">
           <select
+            id="filter-municipality"
             value={filters.municipality}
             disabled={municipalityDisabled}
             onChange={(e) => onChange('municipality', e.target.value)}
@@ -71,8 +76,9 @@ export default function FilterBar({
           </select>
         </Field>
 
-        <Field label="יישוב">
+        <Field label="יישוב" id="filter-settlement">
           <select
+            id="filter-settlement"
             value={filters.settlement}
             disabled={settlementDisabled}
             onChange={(e) => onChange('settlement', e.target.value)}
@@ -85,8 +91,9 @@ export default function FilterBar({
           </select>
         </Field>
 
-        <Field label="סוג אירוע">
+        <Field label="סוג אירוע" id="filter-threat">
           <select
+            id="filter-threat"
             value={filters.threat}
             onChange={(e) => onChange('threat', e.target.value)}
             className={INPUT_CLASS}
@@ -102,11 +109,11 @@ export default function FilterBar({
   );
 }
 
-function Field({ label, children }) {
+function Field({ label, id, children }) {
   return (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-xs font-semibold text-muted">{label}</span>
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={id} className="text-xs font-semibold text-muted">{label}</label>
       {children}
-    </label>
+    </div>
   );
 }

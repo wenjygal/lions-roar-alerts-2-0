@@ -14,17 +14,22 @@ const tooltipStyle = {
 };
 
 const SELECT_CLASS =
-  'bg-[#1e1e1e] border border-border text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent';
+  'bg-[#1e1e1e] border border-border text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg';
 
 function XTick({ x, y, payload }) {
   const v = String(payload.value);
   const label = v.length > 14 ? v.slice(0, 13) + '…' : v;
   return (
-    <g transform={`translate(${x},${y + 8})`}>
-      <text transform="rotate(-40)" textAnchor="end" fill="#888" fontSize={10}>
-        {label}
-      </text>
-    </g>
+    <text
+      x={x}
+      y={y + 4}
+      textAnchor="middle"
+      transform={`rotate(-45, ${x}, ${y + 4})`}
+      fill="#888"
+      fontSize={10}
+    >
+      {label}
+    </text>
   );
 }
 
@@ -67,7 +72,10 @@ function MultiDropdown({ label, options, selected, onChange, formatLabel, placeh
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center justify-between gap-2 bg-[#1e1e1e] border border-border text-gray-200 rounded-lg px-3 py-2 text-sm hover:border-muted transition-colors text-right w-full"
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        aria-label={`${label}: ${buttonLabel}`}
+        className="flex items-center justify-between gap-2 bg-[#1e1e1e] border border-border text-gray-200 rounded-lg px-3 py-2 text-sm hover:border-muted transition-colors text-right w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
       >
         <span className={`truncate ${hasSelection ? 'text-accent' : 'text-muted'}`}>{buttonLabel}</span>
         <span className="text-muted text-xs flex-shrink-0">{open ? '▲' : '▼'}</span>
@@ -139,7 +147,8 @@ export default function CustomCutBuilder({
         <button
           type="button"
           onClick={onReset}
-          className="text-xs text-muted hover:text-white border border-border rounded-lg px-3 py-1.5 transition-colors"
+          aria-label="איפוס ניתוח גיאוגרפי"
+          className="text-xs text-muted hover:text-white border border-border rounded-lg px-3 py-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
           איפוס
         </button>
@@ -221,7 +230,7 @@ function GeoChart({ title, rows, metric }) {
   const data = rows.map((r) => ({ name: r.label, value: r.rawValue }));
 
   return (
-    <div className="bg-[#111] border border-border/60 rounded-xl p-3 sm:p-4">
+    <div className="bg-[#111] border border-border/60 rounded-xl p-3 sm:p-4" role="img" aria-label={`גרף עמודות: ${title}`}>
       <h3 className="text-xs font-semibold text-muted mb-3">{title}</h3>
       <div className="h-48 sm:h-56">
         <ResponsiveContainer width="100%" height="100%">

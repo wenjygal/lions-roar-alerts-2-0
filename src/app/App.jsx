@@ -194,12 +194,26 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-bg px-3 py-4 sm:p-6 max-w-7xl mx-auto">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:right-2 focus:z-50 focus:bg-accent focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm"
+      >
+        דלג לתוכן הראשי
+      </a>
 
       {/* Header */}
       <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-6">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white">שאגת האריה 2.0</h1>
-          <p className="text-muted text-sm mt-1">דשבורד אזעקות · פילוח דינמי · נתוני פיקוד העורף</p>
+        <div className="flex items-start gap-3">
+          <img
+            src="./og-lion-facepalm.png"
+            alt="לוגו שאגת האריה"
+            className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border border-border shadow-lg shadow-black/30 flex-shrink-0"
+          />
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-white">שאגת האריה 2.0</h1>
+            <p className="text-muted text-sm mt-1">דשבורד אזעקות · פילוח דינמי · נתוני פיקוד העורף</p>
+            <p className="text-muted text-xs mt-0.5">האתר מציג נתונים רשמיים של פיקוד העורף. הנתונים מוצגים כפי שהתקבלו — אין אחריות לנכונותם.</p>
+          </div>
         </div>
         <div className="flex items-center gap-3 text-xs text-muted">
           <span>
@@ -209,7 +223,7 @@ export default function App() {
         </div>
       </header>
 
-      <main>
+      <main id="main-content">
         {error && (
           <div className="bg-red-900/30 border border-red-700 rounded-xl p-4 mb-6 text-red-300 text-sm">
             שגיאה בטעינת נתונים: {error}
@@ -261,11 +275,14 @@ export default function App() {
       </main>
 
       <footer className="mt-8 pt-6 border-t border-border text-center text-xs text-muted space-y-1">
-        <p>האתר מציג נתונים רשמיים של פיקוד העורף. הנתונים מוצגים כפי שהתקבלו — אין אחריות לנכונותם.</p>
         <p>
           ליצירת קשר:{' '}
-          <a href="mailto:meimagineai@gmail.com" className="hover:text-white underline transition-colors">
+          <a href="mailto:meimagineai@gmail.com" className="hover:text-white underline transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded">
             MEIMAGINEAI
+          </a>
+          {' · '}
+          <a href="/lions-roar-alerts-2-0/accessibility.html" className="hover:text-white underline transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded">
+            הצהרת נגישות
           </a>
         </p>
       </footer>
