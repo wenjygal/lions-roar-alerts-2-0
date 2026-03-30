@@ -29,16 +29,9 @@ function DateXTick({ x, y, payload }) {
 
 function XTick({ x, y, payload }) {
   const v = String(payload.value);
-  const label = v.length > 12 ? v.slice(0, 11) + '…' : v;
+  const label = v.length > 8 ? v.slice(0, 7) + '…' : v;
   return (
-    <text
-      x={x}
-      y={y + 4}
-      textAnchor="middle"
-      transform={`rotate(-45, ${x}, ${y + 4})`}
-      fill="#888"
-      fontSize={10}
-    >
+    <text x={x} y={y + 14} textAnchor="middle" fill="#888" fontSize={11}>
       {label}
     </text>
   );
@@ -98,7 +91,7 @@ function BarChartCard({ title, bars, compact }) {
               tick={<XTick />}
               axisLine={false}
               tickLine={false}
-              height={72}
+              height={36}
               padding={{ left: 10, right: 10 }}
             />
             <YAxis tick={{ fill: '#888', fontSize: 11 }} axisLine={false} tickLine={false} />
