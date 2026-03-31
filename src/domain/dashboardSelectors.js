@@ -33,6 +33,16 @@ export function createFilterOptions(alerts) {
   };
 }
 
+export function getAllSearchOptions(alerts) {
+  const valid = alerts.filter((row) => row.is_ignored !== 'TRUE');
+  const regions = uniqueSorted(valid.map((r) => r.region).filter((r) => r && !r.includes('?')));
+  const municipalities = uniqueSorted(valid.map((r) => r.municipality).filter(Boolean));
+  const settlements = uniqueSorted(
+    valid.map((r) => r.normalized_settlement || r.source_settlement_raw).filter(Boolean),
+  );
+  return { regions, municipalities, settlements };
+}
+
 export function getAvailableMunicipalities(alerts, region) {
   if (!region) return [];
 

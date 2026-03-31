@@ -5,6 +5,7 @@ import {
   buildMainCharts,
   createFilterOptions,
   filterAlerts,
+  getAllSearchOptions,
   getAvailableMunicipalities,
   getAvailableSettlements,
 } from '../domain/dashboardSelectors.js';
@@ -61,6 +62,7 @@ export function useDashboardData(filters) {
       availableMunicipalities: getAvailableMunicipalities(state.alerts, filters.region),
       availableSettlements: getAvailableSettlements(state.alerts, filters.region, filters.municipality),
       filteredAlerts,
+      searchOptions: getAllSearchOptions(state.alerts),
       kpis: buildKpis(filteredAlerts, state.dashboardEvents, filters),
       charts: buildMainCharts(filteredAlerts),
     };

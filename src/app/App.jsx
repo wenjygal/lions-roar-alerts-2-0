@@ -67,6 +67,7 @@ export default function App() {
     filterOptions,
     availableMunicipalities,
     availableSettlements,
+    searchOptions,
     filteredAlerts,
     kpis,
     charts,
@@ -212,6 +213,20 @@ export default function App() {
     return match ? match.label : null;
   }, [filters.fromDate, filters.toDate]);
 
+  function handleSearchSelect({ type, value }) {
+    if (type === 'region') {
+      setFilters((f) => ({ ...f, region: value, municipality: '', settlement: '' }));
+    } else if (type === 'municipality') {
+      const region = alerts.find((r) => r.municipality === value && r.region && !r.region.includes('?'))?.region || '';
+      setFilters((f) => ({ ...f, region, municipality: value, settlement: '' }));
+    } else if (type === 'settlement') {
+      const row = alerts.find((r) => (r.normalized_settlement || r.source_settlement_raw) === value);
+      const region = row?.region && !row.region.includes('?') ? row.region : '';
+      const municipality = row?.municipality || '';
+      setFilters((f) => ({ ...f, region, municipality, settlement: value }));
+    }
+  }
+
   function handleBuilderReset() {
     setBuilderState(initialBuilderState);
     showToast('הניתוח המותאם אופס לברירת המחדל');
@@ -275,7 +290,9 @@ export default function App() {
             filters={filters}
             onChange={handleFilterChange}
             onReset={handleResetFilters}
+            onSearchSelect={handleSearchSelect}
             options={filterOptions}
+            searchOptions={searchOptions}
             availableMunicipalities={availableMunicipalities}
             availableSettlements={availableSettlements}
           />
