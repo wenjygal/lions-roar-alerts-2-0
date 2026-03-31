@@ -12,9 +12,54 @@ const tooltipStyle = {
   borderRadius: 8,
   color: '#e5e5e5',
   fontSize: 13,
+  padding: '8px 12px',
 };
-const tooltipItemStyle = { color: '#e5e5e5' };
-const tooltipLabelStyle = { color: '#aaa', marginBottom: 4 };
+
+function BarTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  const value = payload[0]?.value;
+  return (
+    <div style={tooltipStyle}>
+      <p style={{ margin: '0 0 2px', color: '#aaa', fontSize: 12 }}>{label}</p>
+      <p style={{ margin: 0, color: '#e5e5e5', fontSize: 13, fontWeight: 600 }}>
+        {value?.toLocaleString('he-IL')} אירועים
+      </p>
+    </div>
+  );
+}
+
+function TrendTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  const dateLabel = String(label).length >= 7 ? String(label).slice(5) : label;
+  const value = payload.find((p) => p.dataKey === 'value')?.value;
+  const trend = payload.find((p) => p.dataKey === 'trend')?.value;
+  return (
+    <div style={tooltipStyle}>
+      <p style={{ margin: '0 0 2px', color: '#aaa', fontSize: 12 }}>{dateLabel}</p>
+      <p style={{ margin: 0, color: '#e5e5e5', fontSize: 13, fontWeight: 600 }}>
+        {value?.toLocaleString('he-IL')} אירועים
+      </p>
+      {trend != null && (
+        <p style={{ margin: '3px 0 0', color: '#f48c06', fontSize: 11 }}>
+          ממוצע נע: {Math.round(trend).toLocaleString('he-IL')}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function DonutTooltip({ active, payload }) {
+  if (!active || !payload?.length) return null;
+  const { name, value } = payload[0];
+  return (
+    <div style={tooltipStyle}>
+      <p style={{ margin: '0 0 2px', color: '#aaa', fontSize: 12 }}>{name}</p>
+      <p style={{ margin: 0, color: '#e5e5e5', fontSize: 13, fontWeight: 600 }}>
+        {value?.toLocaleString('he-IL')} אירועים
+      </p>
+    </div>
+  );
+}
 
 function DateXTick({ x, y, payload }) {
   const v = String(payload.value);
@@ -54,12 +99,7 @@ function DonutChart({ title, bars }) {
                 <Cell key={i} fill={COLORS[i % COLORS.length]} />
               ))}
             </Pie>
-            <Tooltip
-              contentStyle={tooltipStyle}
-              itemStyle={tooltipItemStyle}
-              labelStyle={tooltipLabelStyle}
-              formatter={(v, n) => [v.toLocaleString('he-IL'), n]}
-            />
+            <Tooltip content={<DonutTooltip />} />
             <Legend
               layout="vertical"
               verticalAlign="middle"
@@ -98,13 +138,7 @@ function BarChartCard({ title, bars, compact }) {
               padding={{ left: 10, right: 10 }}
             />
             <YAxis tick={{ fill: '#888', fontSize: 11 }} axisLine={false} tickLine={false} />
-            <Tooltip
-              contentStyle={tooltipStyle}
-              itemStyle={tooltipItemStyle}
-              labelStyle={tooltipLabelStyle}
-              cursor={{ fill: 'rgba(232,93,4,0.1)' }}
-              formatter={(v) => [v.toLocaleString('he-IL'), 'אזעקות']}
-            />
+            <Tooltip content={<BarTooltip />} cursor={{ fill: 'rgba(232,93,4,0.1)' }} />
             <Bar dataKey="value" radius={[4, 4, 0, 0]} fill="#e85d04">
               {data.map((_, i) => (
                 <Cell key={i} fill={COLORS[i % COLORS.length]} />
@@ -138,17 +172,7 @@ function DailyTrendChart({ title, bars }) {
               height={28}
             />
             <YAxis tick={{ fill: '#888', fontSize: 11 }} axisLine={false} tickLine={false} />
-            <Tooltip
-              contentStyle={tooltipStyle}
-              itemStyle={tooltipItemStyle}
-              labelStyle={tooltipLabelStyle}
-              cursor={{ fill: 'rgba(232,93,4,0.1)' }}
-              labelFormatter={(v) => String(v).length >= 7 ? String(v).slice(5) : v}
-              formatter={(v, name) => [
-                v.toLocaleString('he-IL'),
-                name === 'trend' ? 'ממוצע נע' : 'אזעקות',
-              ]}
-            />
+            <Tooltip content={<TrendTooltip />} cursor={{ fill: 'rgba(232,93,4,0.1)' }} />
             <Bar dataKey="value" fill="#e85d04" radius={[3, 3, 0, 0]} />
             <Line
               type="monotone"

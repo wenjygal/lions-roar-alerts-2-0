@@ -11,7 +11,21 @@ const tooltipStyle = {
   borderRadius: 8,
   color: '#e5e5e5',
   fontSize: 13,
+  padding: '8px 12px',
 };
+
+function GeoTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  const value = payload[0]?.value;
+  return (
+    <div style={tooltipStyle}>
+      <p style={{ margin: '0 0 2px', color: '#aaa', fontSize: 12 }}>{label}</p>
+      <p style={{ margin: 0, color: '#e5e5e5', fontSize: 13, fontWeight: 600 }}>
+        {value?.toLocaleString('he-IL')} אירועים
+      </p>
+    </div>
+  );
+}
 
 const SELECT_CLASS =
   'bg-[#1e1e1e] border border-border text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg';
@@ -209,16 +223,16 @@ export default function CustomCutBuilder({
 
       {/* 3 geo charts */}
       <div className="space-y-4">
-        <GeoChart title="לפי אזור" rows={regionRows} metric={metric} />
-        <GeoChart title="לפי מועצה" rows={municipalityRows} metric={metric} />
-        <GeoChart title="לפי יישוב" rows={settlementRows} metric={metric} />
+        <GeoChart title="לפי אזור" rows={regionRows} />
+        <GeoChart title="לפי מועצה" rows={municipalityRows} />
+        <GeoChart title="לפי יישוב" rows={settlementRows} />
       </div>
     </div>
   );
 }
 
 /* ---------- Geo chart ---------- */
-function GeoChart({ title, rows, metric }) {
+function GeoChart({ title, rows }) {
   if (!rows.length) return null;
   const data = rows.map((r) => ({ name: r.label, value: r.rawValue }));
 
@@ -238,12 +252,7 @@ function GeoChart({ title, rows, metric }) {
               height={36}
             />
             <YAxis tick={{ fill: '#888', fontSize: 10 }} axisLine={false} tickLine={false} />
-            <Tooltip
-              contentStyle={tooltipStyle}
-              itemStyle={{ color: '#e5e5e5' }}
-              cursor={{ fill: 'rgba(232,93,4,0.08)' }}
-              formatter={(v) => [v.toLocaleString('he-IL'), metric]}
-            />
+            <Tooltip content={<GeoTooltip />} cursor={{ fill: 'rgba(232,93,4,0.08)' }} />
             <Bar dataKey="value" radius={[4, 4, 0, 0]}>
               {data.map((_, i) => (
                 <Cell key={i} fill={COLORS[i % COLORS.length]} />
