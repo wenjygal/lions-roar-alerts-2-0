@@ -49,7 +49,7 @@ function DonutChart({ title, bars }) {
       <div className="h-72" role="img" aria-label={`תרשים עוגה: ${title}`}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Pie data={data} cx="50%" cy="40%" innerRadius={55} outerRadius={80} dataKey="value" nameKey="name">
+            <Pie data={data} cx="38%" cy="50%" innerRadius={55} outerRadius={80} dataKey="value" nameKey="name">
               {data.map((_, i) => (
                 <Cell key={i} fill={COLORS[i % COLORS.length]} />
               ))}
@@ -61,11 +61,14 @@ function DonutChart({ title, bars }) {
               formatter={(v, n) => [v.toLocaleString('he-IL'), n]}
             />
             <Legend
+              layout="vertical"
+              verticalAlign="middle"
+              align="right"
               iconType="circle"
               iconSize={8}
-              wrapperStyle={{ paddingTop: 16 }}
+              wrapperStyle={{ paddingRight: 8, maxWidth: '45%' }}
               formatter={(v) => (
-                <span style={{ color: '#ccc', fontSize: 12 }}>{v}</span>
+                <span style={{ color: '#ccc', fontSize: 11, whiteSpace: 'normal', lineHeight: '1.5' }}>{v}</span>
               )}
             />
           </PieChart>
