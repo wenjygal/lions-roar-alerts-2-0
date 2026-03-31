@@ -20,13 +20,13 @@ export default function FilterBar({
           type="button"
           onClick={onReset}
           aria-label="איפוס כל הפילטרים"
-          className="text-xs text-muted hover:text-white border border-border rounded-lg px-3 py-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+          className="text-xs text-muted hover:text-white border border-border rounded-lg px-3 py-2.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
           איפוס
         </button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         <Field label="מתאריך" id="filter-from-date">
           <input
             id="filter-from-date"

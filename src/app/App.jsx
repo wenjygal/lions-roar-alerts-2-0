@@ -77,17 +77,6 @@ export default function App() {
     [filteredAlerts],
   );
 
-  const activeFilters = useMemo(
-    () =>
-      [
-        filters.region ? `אזור: ${filters.region}` : '',
-        filters.municipality ? `מועצה: ${filters.municipality}` : '',
-        filters.settlement ? `יישוב: ${filters.settlement}` : '',
-        filters.threat ? `איום: ${filters.threat}` : '',
-      ].filter(Boolean),
-    [filters],
-  );
-
   // --- Custom Cut: available filter options (cascading) ---
   const cutFilterOptions = useMemo(
     () => ({
@@ -238,17 +227,17 @@ export default function App() {
       </a>
 
       {/* Header */}
-      <header className="bg-card border border-border rounded-xl p-4 sm:p-6 mb-4 flex items-center gap-5">
-        <div className="flex-1 text-right">
-          <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight">שאגת האריה 2.0</h1>
-          <p className="text-accent text-xl sm:text-2xl font-semibold mt-2">סטטיסטיקת אזעקות מתעדכנת</p>
-          <p className="text-muted text-sm mt-1">סיכום אזעקות וניתוח סטטיסטי</p>
-          <p className="text-muted text-sm mt-0.5">הנתונים כוללים אזעקות צבע אדום בלבד ממערכת פיקוד העורף. הנתונים מוצגים כפי שהתקבלו — אין אחריות לנכונותם.</p>
+      <header className="bg-card border border-border rounded-xl p-4 sm:p-6 mb-4 flex items-center gap-3 sm:gap-5">
+        <div className="flex-1 text-right min-w-0">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white leading-tight">שאגת האריה 2.0</h1>
+          <p className="text-accent text-base sm:text-xl lg:text-2xl font-semibold mt-1 sm:mt-2">סטטיסטיקת אזעקות מתעדכנת</p>
+          <p className="text-muted text-xs sm:text-sm mt-1">סיכום אזעקות וניתוח סטטיסטי</p>
+          <p className="text-muted text-xs sm:text-sm mt-0.5 hidden sm:block">הנתונים כוללים אזעקות צבע אדום בלבד ממערכת פיקוד העורף. הנתונים מוצגים כפי שהתקבלו — אין אחריות לנכונותם.</p>
         </div>
         <img
           src="./og-lion-facepalm.png"
           alt="לוגו שאגת האריה"
-          className="w-56 h-56 sm:w-72 sm:h-72 rounded-xl object-cover flex-shrink-0"
+          className="w-24 h-24 sm:w-44 sm:h-44 md:w-56 md:h-56 lg:w-72 lg:h-72 rounded-xl object-cover flex-shrink-0"
         />
       </header>
 
@@ -262,7 +251,7 @@ export default function App() {
               type="button"
               onClick={() => applyQuickFilter(days)}
               aria-pressed={isActive}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg ${
+              className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg ${
                 isActive
                   ? 'bg-accent text-white'
                   : 'bg-card border border-border text-muted hover:text-white hover:border-muted'
@@ -301,7 +290,7 @@ export default function App() {
             <KpiGrid items={kpis} />
             <DailyFacts alerts={alerts} />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <ChartGrid items={charts.slice(0, 2)} />
             </div>
 

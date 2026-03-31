@@ -162,10 +162,10 @@ export default function DailyFacts({ alerts }) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 text-xs text-muted hover:text-white border border-border rounded-lg px-3 py-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+        className="flex items-center gap-2 text-xs text-muted hover:text-white border border-border rounded-lg px-4 py-2.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
       >
         <span>היום שהיה</span>
-        <span className="text-[10px]">{open ? '▲' : '▼'}</span>
+        <span className="text-xs">{open ? '▲' : '▼'}</span>
       </button>
 
       {open && (
