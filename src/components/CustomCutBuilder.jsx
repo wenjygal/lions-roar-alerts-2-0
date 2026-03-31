@@ -227,7 +227,7 @@ function GeoChart({ title, rows, metric }) {
       <h3 className="text-xs font-semibold text-muted mb-3">{title}</h3>
       <div className="h-48 sm:h-56">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 4, right: 8, left: -14, bottom: 10 }}>
+          <BarChart data={data} margin={{ top: 4, right: 8, left: 10, bottom: 10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#2a2020" vertical={false} />
             <XAxis
               dataKey="name"

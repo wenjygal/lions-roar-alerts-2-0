@@ -83,7 +83,7 @@ function BarChartCard({ title, bars, compact }) {
       <h2 className="text-sm font-medium text-gray-300 mb-4">{title}</h2>
       <div className={height} role="img" aria-label={`תרשים עמודות: ${title}`}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 5, right: 10, left: -10, bottom: 10 }}>
+          <BarChart data={data} margin={{ top: 5, right: 10, left: 10, bottom: 10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#2a2020" vertical={false} />
             <XAxis
               dataKey="name"
@@ -124,7 +124,7 @@ function DailyTrendChart({ title, bars }) {
       <h2 className="text-sm font-medium text-gray-300 mb-4 text-right">{title}</h2>
       <div className="h-52 sm:h-64" role="img" aria-label={`תרשים מגמה יומי: ${title}`}>
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data} margin={{ top: 5, right: 10, left: -10, bottom: 20 }}>
+          <ComposedChart data={data} margin={{ top: 5, right: 10, left: 10, bottom: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#2a2020" vertical={false} />
             <XAxis
               dataKey="name"
