@@ -7,16 +7,18 @@ const CARD_COLORS = [
 
 export default function KpiGrid({ items }) {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      {items.map((item, i) => (
-        <div
-          key={item.label}
-          className={`rounded-xl border p-4 sm:p-5 flex flex-col gap-2 ${CARD_COLORS[i % CARD_COLORS.length]}`}
-        >
-          <span className="text-xs sm:text-sm text-muted">{item.label}</span>
-          <div className="text-xl sm:text-2xl font-bold text-white leading-tight">{item.value}</div>
-        </div>
-      ))}
-    </div>
+    <section aria-label="מדדים מרכזיים">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {items.map((item, i) => (
+          <div
+            key={item.label}
+            className={`rounded-xl border p-4 sm:p-5 flex flex-col gap-2 ${CARD_COLORS[i % CARD_COLORS.length]}`}
+          >
+            <span className="text-xs sm:text-sm text-muted">{item.label}</span>
+            <div className="text-xl sm:text-2xl font-bold text-white leading-tight">{item.value}</div>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }

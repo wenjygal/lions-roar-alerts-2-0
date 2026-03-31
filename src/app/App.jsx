@@ -265,7 +265,7 @@ export default function App() {
 
       <main id="main-content">
         {error && (
-          <div className="bg-red-900/30 border border-red-700 rounded-xl p-4 mb-6 text-red-300 text-sm">
+          <div role="alert" className="bg-red-900/30 border border-red-700 rounded-xl p-4 mb-6 text-red-300 text-sm">
             שגיאה בטעינת נתונים: {error}
           </div>
         )}
@@ -331,7 +331,7 @@ export default function App() {
       </footer>
 
       {toast && (
-        <div className="fixed left-4 bottom-4 z-20 bg-[#1a1010] border border-border text-sm text-white rounded-xl px-4 py-3 shadow-lg">
+        <div role="status" aria-live="polite" className="fixed left-4 bottom-4 z-20 bg-[#1a1010] border border-border text-sm text-white rounded-xl px-4 py-3 shadow-lg">
           {toast}
         </div>
       )}

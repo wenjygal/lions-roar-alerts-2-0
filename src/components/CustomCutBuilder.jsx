@@ -66,7 +66,7 @@ function MultiDropdown({ label, options, selected, onChange, formatLabel, placeh
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        aria-haspopup="listbox"
+        aria-haspopup="true"
         aria-label={`${label}: ${buttonLabel}`}
         className="flex items-center justify-between gap-2 bg-[#1e1e1e] border border-border text-gray-200 rounded-lg px-3 py-2 text-sm hover:border-muted transition-colors text-right w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
       >

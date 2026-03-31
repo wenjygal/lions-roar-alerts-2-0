@@ -7,7 +7,7 @@ export default {
         card:       '#141414',
         'card-red': '#1a1010',
         'card-olive':'#1a1a08',
-        border:     '#2a2020',
+        border:     '#4a3a3a',
         accent:     '#e85d04',
         'accent-2': '#f48c06',
         muted:      '#a3a3a3',
