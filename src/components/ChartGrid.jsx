@@ -137,7 +137,7 @@ function BarChartCard({ title, bars, compact }) {
               height={36}
               padding={{ left: 10, right: 10 }}
             />
-            <YAxis tick={{ fill: '#888', fontSize: 11 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: '#888', fontSize: 11 }} axisLine={false} tickLine={false} width={38} />
             <Tooltip content={<BarTooltip />} cursor={{ fill: 'rgba(232,93,4,0.1)' }} />
             <Bar dataKey="value" radius={[4, 4, 0, 0]} fill="#e85d04">
               {data.map((_, i) => (
@@ -171,7 +171,7 @@ function DailyTrendChart({ title, bars }) {
               tickLine={false}
               height={28}
             />
-            <YAxis tick={{ fill: '#888', fontSize: 11 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: '#888', fontSize: 11 }} axisLine={false} tickLine={false} width={38} />
             <Tooltip content={<TrendTooltip />} cursor={{ fill: 'rgba(232,93,4,0.1)' }} />
             <Bar dataKey="value" fill="#e85d04" radius={[3, 3, 0, 0]} />
             <Line

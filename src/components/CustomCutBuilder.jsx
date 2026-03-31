@@ -251,7 +251,7 @@ function GeoChart({ title, rows }) {
               tickLine={false}
               height={36}
             />
-            <YAxis tick={{ fill: '#888', fontSize: 10 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: '#888', fontSize: 10 }} axisLine={false} tickLine={false} width={38} />
             <Tooltip content={<GeoTooltip />} cursor={{ fill: 'rgba(232,93,4,0.08)' }} />
             <Bar dataKey="value" radius={[4, 4, 0, 0]}>
               {data.map((_, i) => (
