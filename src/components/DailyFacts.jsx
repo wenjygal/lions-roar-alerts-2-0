@@ -41,50 +41,80 @@ function buildFacts(alerts) {
   const firstAlert = times[0]?.slice(0, 5);
   const lastAlert = times[times.length - 1]?.slice(0, 5);
 
-  // --- Witty fact templates (past tense / hindsight) ---
+  // --- 20+ witty templates, "בדיעבד" only where hindsight advice applies ---
+  const n = (x) => x.toLocaleString('he-IL');
 
+  // TOTAL (pick one via seed later — add multiple variants)
   if (total > 0) {
-    facts.push(`אתמול היו ${total.toLocaleString('he-IL')} אזעקות. יותר מהודעות שיווק שקיבלנו באותו יום.`);
+    facts.push(`אתמול היו ${n(total)} אזעקות. המספר הזה לא כולל את דפיקות הלב.`);
+    facts.push(`${n(total)} אזעקות ביום אחד. פיקוד העורף לא לקח יום חופש.`);
+    facts.push(`אתמול: ${n(total)} אזעקות. לשם השוואה — יותר מכמות הישיבות שהיה אפשר לבטל.`);
   }
 
+  // BUSIEST HOUR
   if (topHour) {
-    facts.push(`${topHour[0]}:00–${topHour[0]}:59 הייתה שעת השיא אתמול עם ${topHour[1].toLocaleString('he-IL')} התראות. בדיעבד — לא הייתה זו השעה הטובה ביותר לקפה בחוץ.`);
+    const h = topHour[0], c = n(topHour[1]);
+    facts.push(`${h}:00–${h}:59 הייתה שעת השיא אתמול עם ${c} התראות. בדיעבד — לא הייתה זו השעה הטובה ביותר לקפה בחוץ.`);
+    facts.push(`בין ${h}:00 ל-${h}:59 אתמול — ${c} אנשים נזכרו פתאום שיש להם מרחב מוגן.`);
+    facts.push(`${h}:00 הייתה שעת השיא אתמול. בדיעבד — שעה פחות מומלצת לאוורר את הדירה.`);
   }
 
+  // QUIETEST HOUR
   if (quietHour && quietHour[0] !== topHour?.[0]) {
-    facts.push(`${quietHour[0]}:00 הייתה השעה השקטה ביותר אתמול — ${quietHour[1]} התראות בלבד. בדיעבד, הייתה זו השעה הטובה ביותר להתקלח.`);
+    const qh = quietHour[0], qc = quietHour[1];
+    facts.push(`${qh}:00 הייתה השקטה ביותר אתמול — ${qc} התראות בלבד. בדיעבד, הייתה זו השעה הטובה ביותר להתקלח.`);
+    facts.push(`רק ${qc} התראות ב-${qh}:00 אתמול. בדיעבד — חלון הזדמנויות אמיתי להוציא את הכלב.`);
+    facts.push(`${qh}:00 — ${qc} התראות. בדיעבד, השעה היחידה שהייתה אפשר לשבת בשקט בחוץ.`);
   }
 
+  // TOP SETTLEMENT
   if (topSettlement) {
-    facts.push(`${topSettlement[0]} הייתה "היעד המועדף" אתמול — ${topSettlement[1].toLocaleString('he-IL')} ביקורים לא מוזמנים. בדיעבד, היה כדאי להישאר בבית.`);
+    const ts = topSettlement[0], tc = n(topSettlement[1]);
+    facts.push(`${ts} הייתה "היעד המועדף" אתמול — ${tc} ביקורים לא מוזמנים. בדיעבד, היה כדאי להישאר בבית.`);
+    facts.push(`${ts} קיבלה ${tc} אזעקות אתמול. הם כנראה כבר מכירים את הדרך למרחב המוגן בעיניים עצומות.`);
+    facts.push(`אם גרתם ב${ts} אתמול — ${tc} אזעקות. בדיעבד, ביקור אצל קרובי משפחה היה הבחירה הנכונה.`);
   }
 
+  // TOP REGION
   if (topRegion) {
+    const tr = topRegion[0];
     const pct = Math.round((topRegion[1] / alerts.length) * 100);
-    facts.push(`${pct}% מהאזעקות אתמול היו ב${topRegion[0]}. התושבים שם הרגישו מיוחדים במינם.`);
+    facts.push(`${pct}% מהאזעקות אתמול היו ב${tr}. התושבים שם מרגישים מיוחדים — לא בטוח שזה כיף.`);
+    facts.push(`אזור ${tr} הוביל אתמול עם ${pct}% מהפעילות. מוביל בטבלה שאף אחד לא רוצה להוביל.`);
   }
 
+  // UNIQUE SETTLEMENTS
   if (uniqueSettlements > 0) {
-    facts.push(`אתמול ה"שירות" הגיע ל-${uniqueSettlements.toLocaleString('he-IL')} ישובים שונים. כיסוי גיאוגרפי מרשים, לצערנו.`);
+    facts.push(`אתמול הגיעו ל-${n(uniqueSettlements)} ישובים שונים. כיסוי שחברות פיצה היו מקנאות בו.`);
+    facts.push(`${n(uniqueSettlements)} ישובים קיבלו אזעקות אתמול. לוגיסטיקה מרשימה, לצערנו.`);
   }
 
+  // FIRST ALERT
   if (firstAlert) {
     if (firstAlert < '06:00') {
-      facts.push(`האזעקה הראשונה אתמול הייתה ב-${firstAlert}. בדיעבד — עוד לפני הקפה. קשה.`);
-    } else if (firstAlert > '09:00') {
-      facts.push(`האזעקה הראשונה אתמול הגיעה רק ב-${firstAlert}. הבוקר היה שקט יחסית.`);
+      facts.push(`האזעקה הראשונה אתמול הייתה ב-${firstAlert}. בדיעבד — עוד לפני שמישהו שתה קפה. קשה.`);
+    } else if (firstAlert < '08:00') {
+      facts.push(`האזעקה הראשונה אתמול הייתה ב-${firstAlert}. בדיעבד — הכוס קפה הספיקה לצנן.`);
+    } else {
+      facts.push(`האזעקה הראשונה אתמול הגיעה רק ב-${firstAlert}. הבוקר היה שקט יחסית — ניצלנו אותו?`);
     }
   }
 
-  if (lastAlert && lastAlert > '22:00') {
-    facts.push(`האזעקה האחרונה אתמול הייתה ב-${lastAlert}. גם מי שהלך לישון מוקדם לא חמק.`);
+  // LAST ALERT
+  if (lastAlert) {
+    if (lastAlert > '23:00') {
+      facts.push(`האזעקה האחרונה אתמול הייתה ב-${lastAlert}. גם מי שהלך לישון מוקדם לא חמק לגמרי.`);
+    } else if (lastAlert < '18:00') {
+      facts.push(`האזעקה האחרונה אתמול ב-${lastAlert}. הערב היה שקט — נדיר.`);
+    }
   }
 
+  // AVG PER HOUR
   if (total > 0 && Object.keys(byHour).length > 0) {
-    const activeHours = Object.keys(byHour).length;
-    const perHour = Math.round(total / activeHours);
-    if (perHour >= 5) {
-      facts.push(`בממוצע ${perHour} אזעקות לשעה אתמול. קצב שאמאזון היה מתגאה בו, אנחנו פחות.`);
+    const perHour = Math.round(total / Object.keys(byHour).length);
+    if (perHour >= 3) {
+      facts.push(`בממוצע ${perHour} אזעקות לשעה אתמול. עקבי לפחות.`);
+      facts.push(`${perHour} אזעקות לשעה בממוצע אתמול. קצב שאמאזון היה מקנא בו, אנחנו פחות.`);
     }
   }
 
