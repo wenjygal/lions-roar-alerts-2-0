@@ -44,7 +44,7 @@ function buildFacts(alerts) {
   // --- Witty fact templates (past tense / hindsight) ---
 
   if (total > 0) {
-    facts.push(`אתמול היו ${total.toLocaleString('he-IL')} אזעקות. יותר מהודעות שיווק שקיבלנו באותו יום, בדיעבד.`);
+    facts.push(`אתמול היו ${total.toLocaleString('he-IL')} אזעקות. יותר מהודעות שיווק שקיבלנו באותו יום.`);
   }
 
   if (topHour) {
@@ -61,30 +61,30 @@ function buildFacts(alerts) {
 
   if (topRegion) {
     const pct = Math.round((topRegion[1] / alerts.length) * 100);
-    facts.push(`${pct}% מהאזעקות אתמול היו ב${topRegion[0]}. בדיעבד, התושבים שם הרגישו מיוחדים במינם.`);
+    facts.push(`${pct}% מהאזעקות אתמול היו ב${topRegion[0]}. התושבים שם הרגישו מיוחדים במינם.`);
   }
 
   if (uniqueSettlements > 0) {
-    facts.push(`אתמול ה"שירות" הגיע ל-${uniqueSettlements.toLocaleString('he-IL')} ישובים. בדיעבד — כיסוי גיאוגרפי מרשים, לצערנו.`);
+    facts.push(`אתמול ה"שירות" הגיע ל-${uniqueSettlements.toLocaleString('he-IL')} ישובים שונים. כיסוי גיאוגרפי מרשים, לצערנו.`);
   }
 
   if (firstAlert) {
     if (firstAlert < '06:00') {
       facts.push(`האזעקה הראשונה אתמול הייתה ב-${firstAlert}. בדיעבד — עוד לפני הקפה. קשה.`);
     } else if (firstAlert > '09:00') {
-      facts.push(`האזעקה הראשונה אתמול הגיעה רק ב-${firstAlert}. בדיעבד — הבוקר היה שקט יחסית.`);
+      facts.push(`האזעקה הראשונה אתמול הגיעה רק ב-${firstAlert}. הבוקר היה שקט יחסית.`);
     }
   }
 
   if (lastAlert && lastAlert > '22:00') {
-    facts.push(`האזעקה האחרונה אתמול הייתה ב-${lastAlert}. בדיעבד — גם מי שהלך לישון מוקדם לא חמק.`);
+    facts.push(`האזעקה האחרונה אתמול הייתה ב-${lastAlert}. גם מי שהלך לישון מוקדם לא חמק.`);
   }
 
   if (total > 0 && Object.keys(byHour).length > 0) {
     const activeHours = Object.keys(byHour).length;
     const perHour = Math.round(total / activeHours);
     if (perHour >= 5) {
-      facts.push(`בממוצע ${perHour} אזעקות לשעה אתמול. בדיעבד — קצב שאמאזון היה מתגאה בו, אנחנו פחות.`);
+      facts.push(`בממוצע ${perHour} אזעקות לשעה אתמול. קצב שאמאזון היה מתגאה בו, אנחנו פחות.`);
     }
   }
 
